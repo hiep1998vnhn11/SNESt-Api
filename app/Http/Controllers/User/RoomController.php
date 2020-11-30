@@ -23,6 +23,7 @@ class RoomController extends Controller
         $rooms = auth()->user()->rooms;
         foreach ($rooms as $room) {
             $room->user_with;
+            $room->user_with->onlineStatus = $room->user_with->isOnline();
         }
         return $this->sendRespondSuccess(auth()->user(), 'Get Room for user Successfully!');
     }
@@ -32,6 +33,7 @@ class RoomController extends Controller
         $rooms = auth()->user()->rooms;
         foreach ($rooms as $room) {
             $room->user_with;
+            $room->user_with->onlineStatus = $room->user_with->isOnline();
         }
         return $this->sendRespondSuccess($rooms, 'Successfully!');
     }

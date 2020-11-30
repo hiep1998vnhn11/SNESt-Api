@@ -65,6 +65,7 @@ class UserController extends Controller
             );
         if ($user_url == auth()->user()->url) $user = auth()->user();
         else $user = $this->findUser($user_url);
+        $user->onlineStatus = $user->isOnline();
         $friends = $user->friends()
             ->select('friend_id', 'id')
             ->where('status', 1)
