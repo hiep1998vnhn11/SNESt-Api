@@ -11,7 +11,8 @@ use Laravel\Jetstream\HasTeams;
 use Laravel\Sanctum\HasApiTokens;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Spatie\Permission\Traits\HasRoles;
-
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Carbon;
 
 class User extends Authenticatable implements JWTSubject
 {
@@ -23,6 +24,18 @@ class User extends Authenticatable implements JWTSubject
     use TwoFactorAuthenticatable;
     use HasRoles;
 
+    public function isOnline()
+    {
+        $expireTime = Cache::get('online-time-user' . $this->id);
+        if (!$expireTime) return [
+            'time' => $expireTime,
+            'status' => false
+        ];
+        return [
+            'time' => $expireTime,
+            'status' => $expireTime >= Carbon::now()
+        ];
+    }
     /**
      * The attributes that are mass assignable.
      *

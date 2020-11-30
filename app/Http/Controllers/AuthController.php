@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 use App\Http\Requests\RegisterRequest;
 use App\Models\Info;
+use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
@@ -45,6 +46,8 @@ class AuthController extends Controller
      */
     public function me()
     {
+        $currentUser = auth()->user();
+        if ($currentUser) $currentUser->isOnline = $currentUser->isOnline();
         return $this->sendRespondSuccess(auth()->user(), null);
     }
 
