@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Guest\TestController;
 use App\Http\Controllers\User\CommentController;
 use App\Http\Controllers\User\PostController;
 use App\Http\Controllers\User\LikeController;
@@ -33,6 +34,8 @@ Route::group([
     Route::post('refresh', [AuthController::class, 'refresh']);
     Route::post('me', [AuthController::class, 'me']);
 });
+
+Route::get('test', [TestController::class, 'test']);
 
 Route::group([
     'prefix' => 'v1'

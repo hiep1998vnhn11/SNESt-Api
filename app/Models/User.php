@@ -13,8 +13,10 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Carbon;
+use Spatie\Searchable\Searchable;
+use Spatie\Searchable\SearchResult;
 
-class User extends Authenticatable implements JWTSubject
+class User extends Authenticatable implements JWTSubject, Searchable
 {
     use HasApiTokens;
     use HasFactory;
@@ -80,6 +82,14 @@ class User extends Authenticatable implements JWTSubject
         return $this->getKey();
     }
 
+    public function getSearchResult(): SearchResult
+    {
+        return new \Spatie\Searchable\SearchResult(
+            $this,
+            $this->name
+        );
+    }
+
     /**
      * Return a key value array, containing any custom claims to be added to the JWT.
      *
@@ -138,5 +148,10 @@ class User extends Authenticatable implements JWTSubject
     public function info()
     {
         return $this->hasOne('App\Models\Info');
+    }
+
+    public function scopeUserWithUrl($query, $url)
+    {
+        return $query->where('url', $url);
     }
 }
