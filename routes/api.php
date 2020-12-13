@@ -13,6 +13,9 @@ use App\Http\Controllers\User\MessageController;
 use App\Http\Controllers\User\RoomController;
 use App\Http\Controllers\User\UserController;
 
+use App\Http\Controllers\Notification\FriendController as NotificationFriendController;
+use Illuminate\Support\Testing\Fakes\NotificationFake;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -117,6 +120,17 @@ Route::group([
         ], function () {
             Route::post('{friend}/accept', [FriendController::class, 'accept']);
             Route::post('{friend}/denied', [FriendController::class, 'denied']);
+        });
+
+        Route::group([
+            'prefix' => 'notification',
+            'middleware' => 'role:viewer'
+        ], function () {
+            Route::post('create', [NotificationFriendController::class, 'create']);
+            Route::post('read', [NotificationFriendController::class, 'read']);
+            Route::delete('delete', [NotificationFriendController::class, 'delete']);
+            Route::post('get', [NotificationFriendController::class, 'get']);
+            Route::post('number_unread', [NotificationFriendController::class, 'numberUnread']);
         });
     });
 
