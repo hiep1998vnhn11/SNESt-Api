@@ -4,6 +4,7 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\User;
 
 class RoomController extends Controller
 {
@@ -18,14 +19,12 @@ class RoomController extends Controller
      *
      * @return Response
      */
-    public function get()
+    public function get(User $user)
     {
-        $rooms = auth()->user()->rooms;
-        foreach ($rooms as $room) {
-            $room->user_with;
-            $room->user_with->onlineStatus = $room->user_with->isOnline();
-        }
-        return $this->sendRespondSuccess(auth()->user(), 'Get Room for user Successfully!');
+        $room = auth()->user()->rooms()
+            ->where('with_id', $user->id)
+            ->first();
+        return $this->sendRespondSuccess($room, 'Get Room by user Successfully!');
     }
 
     public function store()

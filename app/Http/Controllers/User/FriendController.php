@@ -7,6 +7,9 @@ use App\Http\Requests\FriendRequest;
 use Illuminate\Http\Request;
 use App\Http\Services\FriendService;
 use App\Models\Friend;
+use App\Models\User;
+use App\Notifications\FriendNotification;
+use Carbon\Carbon;
 
 class FriendController extends Controller
 {
@@ -23,7 +26,27 @@ class FriendController extends Controller
         $message_error = 'Handle friend fail! Please try again!';
         $data = $this->friendService->handleFriend($request->all());
         if (!$data) return $this->sendRespondError(null, $message_error, config('const.STATUS_CODE_UN_PROCESSABLE'));
-        else return $this->sendRespondSuccess($data, $message_success);
+        else {
+            $friend = User::findOrFail($data->friend_id);
+            $isNotification = false;
+            $noti = null;
+            foreach ($friend->unreadNotifications as $notification) {
+                if ($notification->data["id"] == $data->id) {
+                    $isNotification = true;
+                    $noti = $notification;
+                }
+            }
+            if (!$isNotification) $friend->notify(new FriendNotification([
+                'id' => $data->id,
+                'status' => 'pending',
+                'user' => $data->user
+            ]));
+            else {
+                $noti->updated_at = Carbon::now();
+                $noti->save();
+            }
+            return $this->sendRespondSuccess($data, $message_success);
+        }
     }
 
     public function accept(Friend $friend)
@@ -67,5 +90,15 @@ class FriendController extends Controller
             $friend->user_friend->onlineStatus = $friend->user_friend->isOnline();
         }
         return $this->sendRespondSuccess($friends, 'Get friend successfully!');
+    }
+
+    public function cancel(Friend $friend)
+    {
+        if ($friend->user_id != auth()->user()->id) return $this->sendForbidden();
+        if ($friend->status != 1 && $friend->blocked != 0)
+            return $this->sendRespondError($friend, 'Handle friend fail!', config('const.STATUS_CODE_UN_PROCESSABLE'));
+        $friend->status = 0;
+        $friend->save();
+        return $this->sendRespondSuccess($friend, 'Denied friend successfully');
     }
 }
