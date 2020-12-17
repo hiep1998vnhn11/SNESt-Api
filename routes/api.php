@@ -106,6 +106,7 @@ Route::group([
             Route::get('{room}/message/get', [MessageController::class, 'getByRoom']);
             Route::post('{room}/message/send', [MessageController::class, 'sendByRoom']);
             Route::post('{room}/delete', [MessageController::class, 'deleteRoom']);
+            Route::post('{user}/create', [RoomController::class, 'create']);
             Route::group([
                 'prefix' => 'message',
             ], function () {
