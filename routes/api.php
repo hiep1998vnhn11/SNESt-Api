@@ -101,11 +101,12 @@ Route::group([
             'prefix' => 'room',
             'middleware' => 'role:viewer|admin'
         ], function () {
-            Route::get('get', [RoomController::class, 'get']);
+            Route::get('{user}/get', [RoomController::class, 'get']);
             Route::get('store', [RoomController::class, 'store']);
             Route::get('{room}/message/get', [MessageController::class, 'getByRoom']);
             Route::post('{room}/message/send', [MessageController::class, 'sendByRoom']);
             Route::post('{room}/delete', [MessageController::class, 'deleteRoom']);
+            Route::post('{user}/create', [RoomController::class, 'create']);
             Route::group([
                 'prefix' => 'message',
             ], function () {
@@ -120,6 +121,7 @@ Route::group([
         ], function () {
             Route::post('{friend}/accept', [FriendController::class, 'accept']);
             Route::post('{friend}/denied', [FriendController::class, 'denied']);
+            Route::post('{friend}/cancel', [FriendController::class, 'cancel']);
         });
 
         Route::group([
