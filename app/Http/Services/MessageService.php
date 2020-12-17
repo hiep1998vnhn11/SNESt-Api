@@ -72,7 +72,7 @@ class MessageService
      *
      * @return Message
      */
-    public function sendMessage($param, $room = 0)
+    public function sendMessage($param, $room)
     {
         if (!$room) {
             $user_url = Arr::get($param, 'user_url', null);

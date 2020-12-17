@@ -13,6 +13,9 @@ use App\Http\Controllers\User\MessageController;
 use App\Http\Controllers\User\RoomController;
 use App\Http\Controllers\User\UserController;
 
+use App\Http\Controllers\Notification\FriendController as NotificationFriendController;
+use Illuminate\Support\Testing\Fakes\NotificationFake;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -98,11 +101,12 @@ Route::group([
             'prefix' => 'room',
             'middleware' => 'role:viewer|admin'
         ], function () {
-            Route::get('get', [RoomController::class, 'get']);
+            Route::get('{user}/get', [RoomController::class, 'get']);
             Route::get('store', [RoomController::class, 'store']);
             Route::get('{room}/message/get', [MessageController::class, 'getByRoom']);
             Route::post('{room}/message/send', [MessageController::class, 'sendByRoom']);
             Route::post('{room}/delete', [MessageController::class, 'deleteRoom']);
+            Route::post('{user}/create', [RoomController::class, 'create']);
             Route::group([
                 'prefix' => 'message',
             ], function () {
@@ -117,6 +121,18 @@ Route::group([
         ], function () {
             Route::post('{friend}/accept', [FriendController::class, 'accept']);
             Route::post('{friend}/denied', [FriendController::class, 'denied']);
+            Route::post('{friend}/cancel', [FriendController::class, 'cancel']);
+        });
+
+        Route::group([
+            'prefix' => 'notification',
+            'middleware' => 'role:viewer'
+        ], function () {
+            Route::post('create', [NotificationFriendController::class, 'create']);
+            Route::post('read', [NotificationFriendController::class, 'read']);
+            Route::delete('delete', [NotificationFriendController::class, 'delete']);
+            Route::post('get', [NotificationFriendController::class, 'get']);
+            Route::post('number_unread', [NotificationFriendController::class, 'numberUnread']);
         });
     });
 
