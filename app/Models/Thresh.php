@@ -22,4 +22,9 @@ class Thresh extends Model
     {
         return $this->belongsToMany('App\Models\User', 'participants');
     }
+
+    public function messages()
+    {
+        return $this->hasMany('App\Models\Message');
+    }
 }

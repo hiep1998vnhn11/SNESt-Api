@@ -121,12 +121,11 @@ Route::group([
             'middleware' => 'role:viewer'
         ], function () {
             Route::get('{user}/get', [RoomController::class, 'get']);
-            Route::post('get', [ThreshController::class, 'get']);
-            Route::post('create', [ThreshController::class, 'create']);
-            Route::get('{room}/message/get', [MessageController::class, 'getByRoom']);
-            Route::post('{room}/message/send', [MessageController::class, 'sendByRoom']);
+            Route::post('{user}/get', [ThreshController::class, 'get']);
+            Route::post('{user}/create', [ThreshController::class, 'create']);
+            Route::get('{thresh}/message/get', [MessageController::class, 'get']);
+            Route::post('{thresh}/message/send', [MessageController::class, 'send']);
             Route::post('{room}/delete', [MessageController::class, 'deleteRoom']);
-            Route::post('{user}/create', [RoomController::class, 'create']);
             Route::group([
                 'prefix' => 'message',
             ], function () {
