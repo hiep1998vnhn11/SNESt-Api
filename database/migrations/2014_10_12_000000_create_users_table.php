@@ -20,7 +20,6 @@ class CreateUsersTable extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
-            $table->foreignId('current_team_id')->nullable();
             $table->string('url');
             $table->string('provider_oauth')->nullable();
             $table->text('profile_photo_path')->default('https://icon-library.com/images/default-user-icon/default-user-icon-4.jpg');
