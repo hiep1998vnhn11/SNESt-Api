@@ -55,4 +55,10 @@ class ThreshController extends Controller
             return $this->sendRespondSuccess($thresh, 'Create with thresh successfully!');
         }
     }
+
+    public function store()
+    {
+        $threshes = auth()->user()->threshes()->with('participants')->paginate(10);
+        return $this->sendRespondSuccess($threshes, 'Store thresh successfully!');
+    }
 }

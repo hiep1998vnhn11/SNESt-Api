@@ -120,6 +120,7 @@ Route::group([
             'prefix' => 'thresh',
             'middleware' => 'role:viewer'
         ], function () {
+            Route::get('store', [ThreshController::class, 'store']);
             Route::get('{user}/get', [RoomController::class, 'get']);
             Route::post('{user}/get', [ThreshController::class, 'get']);
             Route::post('{user}/create', [ThreshController::class, 'create']);
