@@ -57,6 +57,8 @@ class User extends Authenticatable implements JWTSubject, Searchable
         'remember_token',
         'two_factor_recovery_codes',
         'two_factor_secret',
+        'email_verified_at',
+        'provider_oauth'
     ];
 
     /**
@@ -153,5 +155,16 @@ class User extends Authenticatable implements JWTSubject, Searchable
     public function scopeUserWithUrl($query, $url)
     {
         return $query->where('url', $url);
+    }
+
+
+    public function participants()
+    {
+        return $this->hasMany('App\Models\Participant');
+    }
+
+    public function threshes()
+    {
+        return $this->belongsToMany('App\Models\Thresh', 'participants');
     }
 }

@@ -15,14 +15,12 @@ class CreateMessageTable extends Migration
     {
         Schema::create('messages', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('room_id');
+            $table->unsignedBigInteger('thresh_id');
             $table->unsignedBigInteger('user_id');
-            $table->foreign('room_id')->references('id')->on('rooms')->onDelete('cascade');
-            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('thresh_id')->references('id')->on('threshes')->onDelete('cascade');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->text('content');
-            $table->unsignedBigInteger('reference_id')->nullable();
-            $table->boolean('removed')->default(0);
-            $table->boolean('read')->default(0);
+            $table->softDeletes();
             $table->timestamps();
         });
     }
