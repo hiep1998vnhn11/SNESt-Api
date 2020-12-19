@@ -15,7 +15,8 @@ class Participant extends Model
 
     public function user()
     {
-        return $this->belongsTo('App\Models\User')->select('id', 'url', 'profile_photo_path', 'name');
+        return $this->belongsTo('App\Models\User')
+            ->select('id', 'url', 'profile_photo_path', 'name');
     }
 
     public function thresh()
