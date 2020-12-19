@@ -124,6 +124,7 @@ Route::group([
             Route::get('{user}/get', [RoomController::class, 'get']);
             Route::post('{user}/get', [ThreshController::class, 'get']);
             Route::post('{user}/create', [ThreshController::class, 'create']);
+            Route::post('{thresh}/participant/get', [ThreshController::class, 'getParticipant']);
             Route::get('{thresh}/message/get', [MessageController::class, 'get']);
             Route::post('{thresh}/message/send', [MessageController::class, 'send']);
             Route::post('{room}/delete', [MessageController::class, 'deleteRoom']);
