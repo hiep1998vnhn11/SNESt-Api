@@ -27,4 +27,11 @@ class Thresh extends Model
     {
         return $this->hasMany('App\Models\Message');
     }
+
+    public function represent()
+    {
+        return $this->hasOne('App\Models\Participant')
+            ->where('user_id', '!=', auth()->user()->id)
+            ->with('user');
+    }
 }

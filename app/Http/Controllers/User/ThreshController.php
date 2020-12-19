@@ -58,7 +58,9 @@ class ThreshController extends Controller
 
     public function store()
     {
-        $threshes = auth()->user()->threshes()->with('participants')->paginate(10);
+        $threshes = auth()->user()->threshes()
+            ->with('participants', 'represent')
+            ->paginate(10);
         return $this->sendRespondSuccess($threshes, 'Store thresh successfully!');
     }
 
