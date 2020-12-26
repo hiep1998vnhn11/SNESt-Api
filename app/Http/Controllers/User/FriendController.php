@@ -93,11 +93,8 @@ class FriendController extends Controller
         $friends = auth()->user()->friends()
             ->where('status', 1)
             ->where('blocked', 0)
+            ->with('user_friend')
             ->get();
-        foreach ($friends as $friend) {
-            $friend->user_friend;
-            $friend->user_friend->onlineStatus = $friend->user_friend->isOnline();
-        }
         return $this->sendRespondSuccess($friends, 'Get friend successfully!');
     }
 

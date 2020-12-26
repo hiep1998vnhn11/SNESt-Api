@@ -68,7 +68,6 @@ class ThreshController extends Controller
     {
         if ($thresh->type === 'private') {
             $user = auth()->user();
-            $user->onlineStatus = $user->isOnline();
             return $this->sendRespondSuccess($user, 'Get private participant successfully!');
         }
         $participants = $thresh->participants();
@@ -76,7 +75,6 @@ class ThreshController extends Controller
             $participant = $participants->where('user_id', '!=', auth()->user()->id)
                 ->first();
             $user = $participant->user;
-            $user->onlineStatus = $user->isOnline();
             return $this->sendRespondSuccess($user, 'Get With participant successfully!');
         } else {
             $participants = $participants->get();
