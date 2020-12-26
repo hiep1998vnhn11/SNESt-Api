@@ -15,7 +15,7 @@ class Thresh extends Model
 
     public function participants()
     {
-        return $this->hasMany('App\Models\Participant');
+        return $this->hasMany('App\Models\Participant')->with('user');
     }
 
     public function users()
@@ -26,5 +26,12 @@ class Thresh extends Model
     public function messages()
     {
         return $this->hasMany('App\Models\Message');
+    }
+
+    public function represent()
+    {
+        return $this->hasOne('App\Models\Participant')
+            ->where('user_id', '!=', auth()->user()->id)
+            ->with('user');
     }
 }

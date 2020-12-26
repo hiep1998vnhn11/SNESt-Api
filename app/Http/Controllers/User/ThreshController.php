@@ -55,4 +55,30 @@ class ThreshController extends Controller
             return $this->sendRespondSuccess($thresh, 'Create with thresh successfully!');
         }
     }
+
+    public function store()
+    {
+        $threshes = auth()->user()->threshes()
+            ->with('participants', 'represent')
+            ->paginate(10);
+        return $this->sendRespondSuccess($threshes, 'Store thresh successfully!');
+    }
+
+    public function getParticipant(Thresh $thresh)
+    {
+        if ($thresh->type === 'private') {
+            $user = auth()->user();
+            return $this->sendRespondSuccess($user, 'Get private participant successfully!');
+        }
+        $participants = $thresh->participants();
+        if ($thresh->type === 'with') {
+            $participant = $participants->where('user_id', '!=', auth()->user()->id)
+                ->first();
+            $user = $participant->user;
+            return $this->sendRespondSuccess($user, 'Get With participant successfully!');
+        } else {
+            $participants = $participants->get();
+            return $this->sendRespondSuccess($participants, 'Get Participants successfully!');
+        }
+    }
 }

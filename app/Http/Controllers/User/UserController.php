@@ -37,10 +37,8 @@ class UserController extends Controller
             ->select('friend_id')
             ->where('status', 1)
             ->where('blocked', 0)
+            ->with('user_friend')
             ->get();
-        foreach ($friends as $friend) {
-            $friend->user_friend;
-        }
         $user->friends = $friends;
         $user->friends_count = count($friends);
         $info = $user->info;
@@ -65,17 +63,14 @@ class UserController extends Controller
             );
         if ($user_url == auth()->user()->url) $user = auth()->user();
         else $user = $this->findUser($user_url);
-        $user->onlineStatus = $user->isOnline();
         $friends = $user->friends()
             ->select('friend_id', 'id')
             ->where('status', 1)
             ->where('blocked', 0)
+            ->with('user_friend')
             ->get();
         if ($user_url == auth()->user()->url) {
             $user->friend_status = config('const.FRIEND_STATUS_NONE');
-            foreach ($friends as $friend) { // Friend of this user url
-                $friend->user_friend;
-            }
         } else {
             $friendOnYourSide = false;
             $friendOnOtherSide = false;
