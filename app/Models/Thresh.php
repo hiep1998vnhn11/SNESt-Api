@@ -34,4 +34,11 @@ class Thresh extends Model
             ->where('user_id', '!=', auth()->user()->id)
             ->with('user');
     }
+
+    public function lastMessage()
+    {
+        return $this->hasOne('App\Models\Message')
+            ->latest('created_at')
+            ->with('user');
+    }
 }

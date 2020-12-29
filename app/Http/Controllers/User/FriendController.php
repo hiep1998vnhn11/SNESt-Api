@@ -10,6 +10,7 @@ use App\Models\Friend;
 use App\Models\User;
 use App\Notifications\FriendNotification;
 use Carbon\Carbon;
+use Illuminate\Support\Arr;
 
 class FriendController extends Controller
 {
@@ -88,13 +89,17 @@ class FriendController extends Controller
         return $this->sendRespondSuccess($friend, 'Denied friend successfully');
     }
 
-    public function get()
+    public function get(Request $request)
     {
-        $friends = auth()->user()->friends()
+        $searchKey = Arr::get($request->all(), 'search_key', null);
+        $param = auth()->user()->friends()
             ->where('status', 1)
             ->where('blocked', 0)
-            ->with('user_friend')
-            ->get();
+            ->with('user_friend');
+        if (!$searchKey) $friends = $param->get();
+        else $friends = $param->whereHas('user_friend', function ($q) use ($searchKey) {
+            $q->where('name', 'like', '%' . $searchKey . '%');
+        })->get();
         return $this->sendRespondSuccess($friends, 'Get friend successfully!');
     }
 

@@ -11,6 +11,7 @@ use App\Http\Requests\MessageRoomRequest;
 use App\Models\Room;
 use App\Models\Thresh;
 use Carbon\Carbon;
+use Illuminate\Support\Arr;
 
 class MessageController extends Controller
 {
@@ -122,11 +123,12 @@ class MessageController extends Controller
         return $this->sendRespondSuccess($data, 'Get Message by Room successfully!');
     }
 
-    public function get(Thresh $thresh)
+    public function get(Thresh $thresh, Request $request)
     {
+        $limit = Arr::get($request->all(), 'limit', config('const.DEFAULT_PER_PAGE'));
         $isThresh = $thresh->participants()->where('user_id', auth()->user()->id)->first();
         if (!$isThresh) return $this->sendForbidden();
-        $messages = $thresh->messages()->paginate(15);
+        $messages = $thresh->messages()->orderBy('created_at', 'desc')->paginate($limit);
         $isThresh->last_read_at = Carbon::now();
         $isThresh->save();
         return $this->sendRespondSuccess($messages, 'Get MEssage successfully!');

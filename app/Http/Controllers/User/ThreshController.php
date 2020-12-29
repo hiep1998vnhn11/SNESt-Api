@@ -9,6 +9,7 @@ use App\Models\Thresh;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Arr;
 
 class ThreshController extends Controller
 {
@@ -56,11 +57,12 @@ class ThreshController extends Controller
         }
     }
 
-    public function store()
+    public function store(Request $request)
     {
+        $limit = Arr::get($request->all(), 'limit', config('const.DEFAULT_PET_PAGE'));
         $threshes = auth()->user()->threshes()
-            ->with('participants', 'represent')
-            ->paginate(10);
+            ->with('participants', 'represent', 'lastMessage')
+            ->paginate($limit);
         return $this->sendRespondSuccess($threshes, 'Store thresh successfully!');
     }
 
