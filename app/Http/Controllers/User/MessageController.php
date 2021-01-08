@@ -12,6 +12,7 @@ use App\Models\Room;
 use App\Models\Thresh;
 use Carbon\Carbon;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Redis;
 
 class MessageController extends Controller
 {
@@ -142,5 +143,17 @@ class MessageController extends Controller
         $message->content = $request->content;
         $message->save();
         return $this->sendRespondSuccess($message, 'sendMessageSuccessfully!');
+    }
+
+    public function getCacheMessage()
+    {
+        $threshes = Redis::get('threshes_user' . auth()->user()->id);
+        return $this->sendRespondSuccess($threshes, 'Get cache successfully!');
+    }
+
+    public function setCaceMessage(Request $request)
+    {
+        $threshes = Redis::set('threshes_user' . auth()->user()->id, $request->threshes);
+        return $this->sendRespondSuccess($threshes, 'Set cache successfully!');
     }
 }

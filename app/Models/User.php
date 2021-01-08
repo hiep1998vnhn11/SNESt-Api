@@ -25,19 +25,6 @@ class User extends Authenticatable implements JWTSubject, Searchable
     use Notifiable;
     use TwoFactorAuthenticatable;
     use HasRoles;
-
-    public function isOnline()
-    {
-        $expireTime = Cache::get('online-time-user' . $this->id);
-        if (!$expireTime) return [
-            'time' => $expireTime,
-            'status' => false
-        ];
-        return [
-            'time' => $expireTime,
-            'status' => $expireTime >= Carbon::now()
-        ];
-    }
     /**
      * The attributes that are mass assignable.
      *
