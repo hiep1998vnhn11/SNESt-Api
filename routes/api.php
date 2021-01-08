@@ -4,6 +4,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Guest\TestController;
+use App\Http\Controllers\Guest\SearchController as GuestSearchController;
+
 use App\Http\Controllers\User\CommentController;
 use App\Http\Controllers\User\PostController;
 use App\Http\Controllers\User\LikeController;
@@ -49,6 +51,8 @@ Route::group([
     ], function () {
         Route::get('user/get', [UserController::class, 'getForGuest']);
         Route::get('post/{post}/get', [PostController::class, 'get']);
+
+        Route::get('search/identify', [GuestSearchController::class, 'searchUserForIdentify']);
     });
 
     Route::group([
