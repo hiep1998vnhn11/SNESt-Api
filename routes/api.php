@@ -4,6 +4,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Guest\TestController;
+use App\Http\Controllers\Guest\SearchController as GuestSearchController;
+
 use App\Http\Controllers\User\CommentController;
 use App\Http\Controllers\User\PostController;
 use App\Http\Controllers\User\LikeController;
@@ -12,6 +14,7 @@ use App\Http\Controllers\User\FriendController;
 use App\Http\Controllers\User\MessageController;
 use App\Http\Controllers\User\RoomController;
 use App\Http\Controllers\User\UserController;
+use App\Http\Controllers\User\ThreshController;
 
 use App\Http\Controllers\Notification\FriendController as NotificationFriendController;
 use Illuminate\Support\Testing\Fakes\NotificationFake;
@@ -48,6 +51,8 @@ Route::group([
     ], function () {
         Route::get('user/get', [UserController::class, 'getForGuest']);
         Route::get('post/{post}/get', [PostController::class, 'get']);
+
+        Route::get('search/identify', [GuestSearchController::class, 'searchUserForIdentify']);
     });
 
     Route::group([
@@ -107,6 +112,25 @@ Route::group([
             Route::post('{room}/message/send', [MessageController::class, 'sendByRoom']);
             Route::post('{room}/delete', [MessageController::class, 'deleteRoom']);
             Route::post('{user}/create', [RoomController::class, 'create']);
+            Route::group([
+                'prefix' => 'message',
+            ], function () {
+                Route::post('{message}/delete', [MessageController::class, 'delete']);
+                Route::post('{message}/remove', [MessageController::class, 'remove']);
+            });
+        });
+
+        Route::group([
+            'prefix' => 'thresh',
+            'middleware' => 'role:viewer'
+        ], function () {
+            Route::get('store', [ThreshController::class, 'store']);
+            Route::post('{user}/get', [ThreshController::class, 'get']);
+            Route::post('{user}/create', [ThreshController::class, 'create']);
+            Route::post('{thresh}/participant/get', [ThreshController::class, 'getParticipant']);
+            Route::get('{thresh}/message/get', [MessageController::class, 'get']);
+            Route::post('{thresh}/message/send', [MessageController::class, 'send']);
+            Route::post('{room}/delete', [MessageController::class, 'deleteRoom']);
             Route::group([
                 'prefix' => 'message',
             ], function () {

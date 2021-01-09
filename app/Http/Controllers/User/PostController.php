@@ -25,7 +25,7 @@ class PostController extends Controller
 
     public function __construct(PostService $postService)
     {
-        $this->middleware('auth:api', ['except' => ['get']]);
+        $this->middleware('auth:api');
         $this->postService = $postService;
     }
     /**
@@ -132,17 +132,13 @@ class PostController extends Controller
     public function get(Post $post)
     {
         $post->user;
+        $post->images;
         $post->loadCount(['likes' => function ($query) {
             $query->where('status', 1);
         }]);
-        $likes = $post->likes->where('status', 1);
-        foreach ($likes as $like) {
-            $like->user;
-            if (auth()->user() && $like->user_id == auth()->user()->id) {
-                $post->isLiked = true;
-            }
-        }
-        if (auth()->user() && !$post->isLiked) $post->isLiked = false;
+        $liked = $post->likes->where('status', 1)->where('user_id', auth()->user()->id)->first();
+        if ($liked) $post->isLiked = false;
+        else $post->isLiked = true;
         $post->loadCount('comments');
         $comments = $post->comments;
         foreach ($comments as $comment) {

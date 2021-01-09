@@ -10,6 +10,7 @@ use App\Models\Friend;
 use App\Models\User;
 use App\Notifications\FriendNotification;
 use Carbon\Carbon;
+use Illuminate\Support\Arr;
 
 class FriendController extends Controller
 {
@@ -30,22 +31,24 @@ class FriendController extends Controller
             $friend = User::findOrFail($data->friend_id);
             $isNotification = false;
             $noti = null;
-            foreach ($friend->unreadNotifications as $notification) {
+            foreach ($friend->notifications as $notification) {
                 if ($notification->data["id"] == $data->id) {
                     $isNotification = true;
                     $noti = $notification;
                 }
             }
-            if (!$isNotification) $friend->notify(new FriendNotification([
-                'id' => $data->id,
-                'status' => 'pending',
-                'user' => $data->user
-            ]));
-            else {
+            if (!$isNotification) {
+                $noti = $friend->notify(new FriendNotification([
+                    'id' => $data->id,
+                    'status' => 'pending',
+                    'user' => $data->user
+                ]));
+            } else {
                 $noti->updated_at = Carbon::now();
+                $noti->read_at = null;
                 $noti->save();
             }
-            return $this->sendRespondSuccess($data, $message_success);
+            return $this->sendRespondSuccess($noti, $message_success);
         }
     }
 
@@ -63,7 +66,14 @@ class FriendController extends Controller
         $new_friend->status = 1;
         $new_friend->blocked = 0;
         $new_friend->save();
-        return $this->sendRespondSuccess($new_friend, 'Accept friend successfully!');
+
+        $noti = $friend->user->notify(new FriendNotification([
+            'id' => $new_friend->id,
+            'type' => 'accepted',
+            'status' => 'accepted',
+            'user' => auth()->user()
+        ]));
+        return $this->sendRespondSuccess($noti, 'Accept friend successfully!');
     }
 
     public function denied(Friend $friend)
@@ -79,16 +89,17 @@ class FriendController extends Controller
         return $this->sendRespondSuccess($friend, 'Denied friend successfully');
     }
 
-    public function get()
+    public function get(Request $request)
     {
-        $friends = auth()->user()->friends()
+        $searchKey = Arr::get($request->all(), 'search_key', null);
+        $param = auth()->user()->friends()
             ->where('status', 1)
             ->where('blocked', 0)
-            ->get();
-        foreach ($friends as $friend) {
-            $friend->user_friend;
-            $friend->user_friend->onlineStatus = $friend->user_friend->isOnline();
-        }
+            ->with('user_friend');
+        if (!$searchKey) $friends = $param->get();
+        else $friends = $param->whereHas('user_friend', function ($q) use ($searchKey) {
+            $q->where('name', 'like', '%' . $searchKey . '%');
+        })->get();
         return $this->sendRespondSuccess($friends, 'Get friend successfully!');
     }
 

@@ -25,19 +25,6 @@ class User extends Authenticatable implements JWTSubject, Searchable
     use Notifiable;
     use TwoFactorAuthenticatable;
     use HasRoles;
-
-    public function isOnline()
-    {
-        $expireTime = Cache::get('online-time-user' . $this->id);
-        if (!$expireTime) return [
-            'time' => $expireTime,
-            'status' => false
-        ];
-        return [
-            'time' => $expireTime,
-            'status' => $expireTime >= Carbon::now()
-        ];
-    }
     /**
      * The attributes that are mass assignable.
      *
@@ -57,6 +44,8 @@ class User extends Authenticatable implements JWTSubject, Searchable
         'remember_token',
         'two_factor_recovery_codes',
         'two_factor_secret',
+        'email_verified_at',
+        'provider_oauth'
     ];
 
     /**
@@ -74,7 +63,7 @@ class User extends Authenticatable implements JWTSubject, Searchable
      * @var array
      */
     protected $appends = [
-        'profile_photo_url',
+        'online_status',
     ];
 
     public function getJWTIdentifier()
@@ -153,5 +142,28 @@ class User extends Authenticatable implements JWTSubject, Searchable
     public function scopeUserWithUrl($query, $url)
     {
         return $query->where('url', $url);
+    }
+
+    public function participants()
+    {
+        return $this->hasMany('App\Models\Participant');
+    }
+
+    public function threshes()
+    {
+        return $this->belongsToMany('App\Models\Thresh', 'participants');
+    }
+
+    public function getOnlineStatusAttribute()
+    {
+        $expireTime = Cache::get('online-time-user' . $this->id);
+        if (!$expireTime) return [
+            'time' => $expireTime,
+            'status' => false
+        ];
+        return [
+            'time' => $expireTime,
+            'status' => $expireTime >= Carbon::now()
+        ];
     }
 }

@@ -11,6 +11,7 @@ use Spatie\Permission\Models\Role;
 use App\Http\Requests\RegisterRequest;
 use App\Models\Info;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redis;
 
 class AuthController extends Controller
 {
@@ -47,7 +48,8 @@ class AuthController extends Controller
     public function me()
     {
         $currentUser = auth()->user();
-        if ($currentUser) $currentUser->isOnline = $currentUser->isOnline();
+        $currentUser->info->jobs;
+        $currentUser->info->educates;
         return $this->sendRespondSuccess(auth()->user(), null);
     }
 

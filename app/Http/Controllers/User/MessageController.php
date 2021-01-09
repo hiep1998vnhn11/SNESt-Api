@@ -9,6 +9,10 @@ use App\Http\Services\MessageService;
 use App\Http\Requests\MessageRequest;
 use App\Http\Requests\MessageRoomRequest;
 use App\Models\Room;
+use App\Models\Thresh;
+use Carbon\Carbon;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Redis;
 
 class MessageController extends Controller
 {
@@ -30,7 +34,7 @@ class MessageController extends Controller
      */
     public function sendMessage(MessageRequest $request)
     {
-        $data = $this->messageService->sendMessage($request->all());
+        $data = $this->messageService->sendMessage($request->all(), 1);
         if (!$data)
             return $this->sendRespondError(null, 'Send message error!', config('const.STATUS_CODE_BAD_REQUEST'));
         else return $this->sendRespondSuccess($data, 'Send message successfully!');
@@ -118,5 +122,38 @@ class MessageController extends Controller
             return $this->sendForbidden();
         $data = $room->messages;
         return $this->sendRespondSuccess($data, 'Get Message by Room successfully!');
+    }
+
+    public function get(Thresh $thresh, Request $request)
+    {
+        $limit = Arr::get($request->all(), 'limit', config('const.DEFAULT_PER_PAGE'));
+        $isThresh = $thresh->participants()->where('user_id', auth()->user()->id)->first();
+        if (!$isThresh) return $this->sendForbidden();
+        $messages = $thresh->messages()->orderBy('created_at', 'desc')->paginate($limit);
+        $isThresh->last_read_at = Carbon::now();
+        $isThresh->save();
+        return $this->sendRespondSuccess($messages, 'Get MEssage successfully!');
+    }
+
+    public function send(Thresh $thresh, MessageRoomRequest $request)
+    {
+        $message = new Message();
+        $message->thresh_id = $thresh->id;
+        $message->user_id = auth()->user()->id;
+        $message->content = $request->content;
+        $message->save();
+        return $this->sendRespondSuccess($message, 'sendMessageSuccessfully!');
+    }
+
+    public function getCacheMessage()
+    {
+        $threshes = Redis::get('threshes_user' . auth()->user()->id);
+        return $this->sendRespondSuccess($threshes, 'Get cache successfully!');
+    }
+
+    public function setCaceMessage(Request $request)
+    {
+        $threshes = Redis::set('threshes_user' . auth()->user()->id, $request->threshes);
+        return $this->sendRespondSuccess($threshes, 'Set cache successfully!');
     }
 }

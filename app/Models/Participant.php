@@ -6,22 +6,17 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Message extends Model
+class Participant extends Model
 {
     use HasFactory;
     use SoftDeletes;
 
     protected $dates = ['deleted_at'];
-    protected $table = 'messages';
 
     public function user()
     {
-        return $this->belongsTo('App\Models\User')->select('id', 'url', 'profile_photo_path', 'name');
-    }
-
-    public function room()
-    {
-        return $this->belongsTo('App\Models\Room');
+        return $this->belongsTo('App\Models\User')
+            ->select('id', 'url', 'profile_photo_path', 'name');
     }
 
     public function thresh()
