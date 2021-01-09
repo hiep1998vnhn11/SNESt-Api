@@ -11,12 +11,10 @@ use Laravel\Jetstream\HasTeams;
 use Laravel\Sanctum\HasApiTokens;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Carbon;
-use Spatie\Searchable\Searchable;
-use Spatie\Searchable\SearchResult;
 
-class User extends Authenticatable implements JWTSubject, Searchable
+class User extends Authenticatable implements JWTSubject
 {
     use HasApiTokens;
     use HasFactory;
@@ -69,14 +67,6 @@ class User extends Authenticatable implements JWTSubject, Searchable
     public function getJWTIdentifier()
     {
         return $this->getKey();
-    }
-
-    public function getSearchResult(): SearchResult
-    {
-        return new \Spatie\Searchable\SearchResult(
-            $this,
-            $this->name
-        );
     }
 
     /**
@@ -156,7 +146,7 @@ class User extends Authenticatable implements JWTSubject, Searchable
 
     public function getOnlineStatusAttribute()
     {
-        $expireTime = Cache::get('online-time-user' . $this->id);
+        $expireTime = Redis::get('online-time-user' . $this->id);
         if (!$expireTime) return [
             'time' => $expireTime,
             'status' => false

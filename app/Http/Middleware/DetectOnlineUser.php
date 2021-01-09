@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Redis;
 
 class DetectOnlineUser
 {
@@ -19,7 +20,7 @@ class DetectOnlineUser
     public function handle(Request $request, Closure $next)
     {
         if (auth()->user()) {
-            Cache::forever('online-time-user' . auth()->user()->id, Carbon::now()->addMinute(3));
+            Redis::set('online-time-user' . auth()->user()->id, Carbon::now()->addMinute(3));
         }
         return $next($request);
     }
