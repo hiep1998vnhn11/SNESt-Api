@@ -14,8 +14,9 @@ class Post extends Model implements Searchable
 
     public function getSearchResult(): SearchResult
     {
-        return new \Spatie\Searchable\SearchResult(
+        return new SearchResult(
             $this,
+            $this->content,
             'post'
         );
     }
