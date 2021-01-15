@@ -15,6 +15,7 @@ use App\Http\Controllers\User\MessageController;
 use App\Http\Controllers\User\RoomController;
 use App\Http\Controllers\User\UserController;
 use App\Http\Controllers\User\ThreshController;
+use App\Http\Controllers\User\SearchController;
 
 use App\Http\Controllers\Notification\FriendController as NotificationFriendController;
 use Illuminate\Support\Testing\Fakes\NotificationFake;
@@ -157,6 +158,14 @@ Route::group([
             Route::delete('delete', [NotificationFriendController::class, 'delete']);
             Route::post('get', [NotificationFriendController::class, 'get']);
             Route::post('number_unread', [NotificationFriendController::class, 'numberUnread']);
+        });
+
+        Route::group([
+            'prefix' => 'search',
+            'middleware' => 'role:viewer|admin'
+        ], function () {
+            Route::post('history', [SearchController::class, 'index']);
+            Route::post('get', [SearchController::class, 'search']);
         });
     });
 
