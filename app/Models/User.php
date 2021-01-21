@@ -157,7 +157,7 @@ class User extends Authenticatable implements JWTSubject, Searchable
 
     public function getOnlineStatusAttribute()
     {
-        $expireTime = Redis::get('online-time-user' . $this->id);
+        $expireTime = Redis::get('user:' . $this->id . ':onlineStatus');
         if (!$expireTime) return [
             'time' => $expireTime,
             'status' => false

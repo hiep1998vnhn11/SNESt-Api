@@ -19,7 +19,7 @@ class SearchController extends Controller
 
     public function index()
     {
-        $searchHistory = json_decode(Redis::get('search_history_user' . auth()->user()->id));
+        $searchHistory = Redis::lrange('user_search_' . auth()->user()->id, 0, -1);
         return $this->sendRespondSuccess($searchHistory, 'Get search history successfully!');
     }
 
@@ -28,16 +28,19 @@ class SearchController extends Controller
         $searchKey = $request->search_key;
         $searchResult = (new Search())->registerModel(User::class, 'name')->search($searchKey);
         if ($request->history) {
-            $searchHistory = json_decode(Redis::get('search_history_user' . auth()->user()->id));
-            if (!$searchHistory) {
-                $searchHistory = [$searchKey];
-                Redis::set('search_history_user' . auth()->user()->id, json_encode($searchHistory));
-            } else if (array_search($searchKey, $searchHistory) !== false) {
-                array_unshift($searchHistory, $searchKey);
-                if (count($searchHistory) > 10) array_pop($searchHistory);
-                Redis::set('search_history_user' . auth()->user()->id, json_encode($searchHistory));
+            Redis::lpush('user_search_' . auth()->user()->id, $searchKey);
+            $historyLength = Redis::llen('user_search_' . auth()->user()->id);
+            if ($historyLength > 15) {
+                Redis::rpop('user_search_' . auth()->user()->id);
             }
         }
         return $this->sendRespondSuccess($searchResult, 'Search Success!');
+    }
+
+    public function delete(String $value)
+    {
+        Redis::lrem('user_search_' . auth()->user()->id, 1, $value);
+        $searchHistory = Redis::lrange('user_search_' . auth()->user()->id, 0, -1);
+        return $this->sendRespondSuccess($searchHistory, 'Delete result successfully!');
     }
 }
