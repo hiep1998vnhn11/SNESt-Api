@@ -24,7 +24,8 @@ class SearchRequest extends FormRequest
     public function rules()
     {
         return [
-            'search_key' => 'required|string'
+            'search_key' => 'required|string',
+            'type' => 'string'
         ];
     }
 }

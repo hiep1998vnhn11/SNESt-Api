@@ -167,6 +167,8 @@ Route::group([
             Route::post('history', [SearchController::class, 'index']);
             Route::post('get', [SearchController::class, 'search']);
             Route::delete('{value}/delete', [SearchController::class, 'delete']);
+            Route::post('trending', [SearchController::class, 'trending']);
+            Route::post('test', [SearchController::class, 'test']);
         });
     });
 
