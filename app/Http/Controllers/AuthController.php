@@ -33,7 +33,6 @@ class AuthController extends Controller
     public function login()
     {
         $credentials = request(['email', 'password']);
-
         if (!$token = auth()->setTTL(7200)->attempt($credentials)) {
             return $this->sendRespondError($credentials, 'Unauthorized', config('const.STATUS_CODE_UNAUTHORIZED'));
         }
