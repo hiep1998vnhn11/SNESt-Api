@@ -1,16 +1,21 @@
 # Laravel Rest API server for SNESt Social Network!
 
 ## Usage
+
 Make sure that your device have make command:
+
 ```
 make init-app
 ```
 
 ## Routing
+
 ```
 make route
 ```
+
 ### {BaseURL}/api/auth
+
     login
     register
     logout
@@ -18,7 +23,9 @@ make route
     me
 
 ### {BaseURL}/api/v1
+
 #### /user
+
     handle_friend
         $user_url
         $relationship
@@ -45,7 +52,7 @@ make route
                 {sub_comment}/update
                 {sub_comment}/delete
 
-    Group /room   
+    Group /room
         {room}/delete
 
         Group Message
@@ -53,4 +60,5 @@ make route
             {message}/remove
 
 #### /admin
-    
+
+    https://hocwebchuan.com/tutorial/css3/display-flex.php
