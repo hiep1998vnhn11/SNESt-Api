@@ -33,6 +33,11 @@ class UserController extends Controller
                 config('const.STATUS_CODE_BAD_REQUEST')
             );
         $user = $this->findUser($user_url);
+        if (!$user) return $this->sendRespondError(
+            null,
+            'Not found User!',
+            config('const.STATUS_CODE_NOT_FOUND')
+        );
         $friends = $user->friends()
             ->select('friend_id')
             ->where('status', 1)
@@ -44,14 +49,8 @@ class UserController extends Controller
         $info = $user->info;
         $info->jobs;
         $info->educates;
-        if (!$user) return $this->sendRespondError(
-            null,
-            'Not found User!',
-            config('const.STATUS_CODE_BAD_REQUEST')
-        );
         return $this->sendRespondSuccess($user, 'Get User successfully!');
     }
-
     public function getForAuth(GuestUserRequest $request)
     {
         $user_url = $request->user_url;
