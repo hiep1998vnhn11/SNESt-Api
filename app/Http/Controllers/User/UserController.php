@@ -62,6 +62,11 @@ class UserController extends Controller
             );
         if ($user_url == auth()->user()->url) $user = auth()->user();
         else $user = $this->findUser($user_url);
+        if (!$user) return $this->sendRespondError(
+            null,
+            'Not found User!',
+            config('const.STATUS_CODE_BAD_REQUEST')
+        );
         $friends = $user->friends()
             ->select('friend_id', 'id')
             ->where('status', 1)
@@ -104,11 +109,6 @@ class UserController extends Controller
         $info = $user->info;
         $info->jobs;
         $info->educates;
-        if (!$user) return $this->sendRespondError(
-            null,
-            'Not found User!',
-            config('const.STATUS_CODE_BAD_REQUEST')
-        );
         return $this->sendRespondSuccess($user, 'Get User successfully!');
     }
 
