@@ -77,7 +77,7 @@ class MessageController extends Controller
      */
     public function delete(Message $message)
     {
-        if ($this->checkAuthUser($message->user_id) || $this->checkAuthUser($message->room->user_id))
+        if ($message->user_id !== auth()->user()->id)
             return $this->sendForbidden();
         $message->delete();
         return $this->sendRespondSuccess($message, 'Delete Message successfully!');
@@ -129,7 +129,7 @@ class MessageController extends Controller
         $limit = Arr::get($request->all(), 'limit', config('const.DEFAULT_PER_PAGE'));
         $isThresh = $thresh->participants()->where('user_id', auth()->user()->id)->first();
         if (!$isThresh) return $this->sendForbidden();
-        $messages = $thresh->messages()->orderBy('created_at', 'desc')->paginate($limit);
+        $messages = $thresh->messages()->withTrashed()->orderBy('created_at', 'desc')->paginate($limit);
         $isThresh->last_read_at = Carbon::now();
         $isThresh->save();
         return $this->sendRespondSuccess($messages, 'Get MEssage successfully!');
@@ -155,5 +155,12 @@ class MessageController extends Controller
     {
         $threshes = Redis::set('threshes_user' . auth()->user()->id, $request->threshes);
         return $this->sendRespondSuccess($threshes, 'Set cache successfully!');
+    }
+
+    public function destroy(Message $message)
+    {
+        if ($message->user_id !== auth()->user()->id) return $this->sendForbidden();
+        $message->delete();
+        return $this->sendRespondSuccess($message, 'Deleted!');
     }
 }

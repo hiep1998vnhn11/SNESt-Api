@@ -25,7 +25,7 @@ class PostController extends Controller
 
     public function __construct(PostService $postService)
     {
-        $this->middleware('auth:api');
+        $this->middleware('auth:api')->except(['get', 'store']);
         $this->postService = $postService;
     }
     /**

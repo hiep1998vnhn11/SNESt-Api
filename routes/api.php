@@ -52,7 +52,7 @@ Route::group([
     ], function () {
         Route::get('user/get', [UserController::class, 'getForGuest']);
         Route::get('post/{post}/get', [PostController::class, 'get']);
-
+        Route::get('post/store', [PostController::class, 'store']);
         Route::get('search/identify', [GuestSearchController::class, 'searchUserForIdentify']);
     });
 
@@ -60,7 +60,6 @@ Route::group([
         'prefix' => 'user',
         'middleware' => 'role:viewer|admin'
     ], function () {
-
         Route::post('handle_friend', [FriendController::class, 'handleFriend']);
         Route::post('send_message', [MessageController::class, 'sendMessage']);
         Route::post('upload_avatar', [UserController::class, 'uploadAvatar']);
@@ -135,7 +134,7 @@ Route::group([
             Route::group([
                 'prefix' => 'message',
             ], function () {
-                Route::post('{message}/delete', [MessageController::class, 'delete']);
+                Route::delete('{message}/delete', [MessageController::class, 'delete']);
                 Route::post('{message}/remove', [MessageController::class, 'remove']);
             });
         });
