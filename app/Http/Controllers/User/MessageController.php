@@ -83,6 +83,14 @@ class MessageController extends Controller
         return $this->sendRespondSuccess($message, 'Delete Message successfully!');
     }
 
+    public function reverse($message_id)
+    {
+        $message = Message::onlyTrashed()->findOrFail($message_id);
+        if ($message->user_id !== auth()->user()->id) $this->sendForbidden();
+        $message->restore();
+        return $this->sendRespondSuccess($message, 'Reverse Success!');
+    }
+
     /**
      * Create comment on a post.
      *

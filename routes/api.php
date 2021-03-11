@@ -135,6 +135,7 @@ Route::group([
                 'prefix' => 'message',
             ], function () {
                 Route::delete('{message}/delete', [MessageController::class, 'delete']);
+                Route::patch('{message_id}/reverse', [MessageController::class, 'reverse']);
                 Route::post('{message}/remove', [MessageController::class, 'remove']);
             });
         });
