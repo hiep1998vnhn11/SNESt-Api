@@ -46,6 +46,8 @@ class UserController extends Controller
             ->get();
         $user->friends = $friends;
         $user->friends_count = count($friends);
+        $user->relationships;
+        $user->loadCount('relationships');
         $info = $user->info;
         $info->jobs;
         $info->educates;
@@ -106,6 +108,8 @@ class UserController extends Controller
         }
         $user->friends = $friends;
         $user->friends_count = count($friends);
+        $user->relationships;
+        $user->loadCount('relationships');
         $info = $user->info;
         $info->jobs;
         $info->educates;

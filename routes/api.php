@@ -18,6 +18,7 @@ use App\Http\Controllers\User\ThreshController;
 use App\Http\Controllers\User\SearchController;
 
 use App\Http\Controllers\Notification\FriendController as NotificationFriendController;
+use App\Http\Controllers\User\RelationshipController;
 use Illuminate\Support\Testing\Fakes\NotificationFake;
 
 /*
@@ -72,6 +73,17 @@ Route::group([
 
 
         Route::post('friend/get', [FriendController::class, 'get']);
+        Route::group([
+            'prefix' => 'relationship',
+            'middleware' => 'role:viewer'
+        ], function () {
+            Route::get('store', [RelationshipController::class, 'store']);
+            Route::post('{user}/friend', [RelationshipController::class, 'addFriend']);
+            Route::post('{user}/block', [RelationshipController::class, 'block']);
+            Route::post('{user}/unfriend', [RelationshipController::class, 'unFriend']);
+            Route::post('{user}/unblock', [RelationshipController::class, 'unBlock']);
+        });
+
         // Post
         Route::group([
             'prefix' => 'post',
