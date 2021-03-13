@@ -174,13 +174,16 @@ Route::group([
 
         Route::group([
             'prefix' => 'search',
-            'middleware' => 'role:viewer|admin'
         ], function () {
-            Route::post('history', [SearchController::class, 'index']);
-            Route::post('get', [SearchController::class, 'search']);
-            Route::delete('{value}/delete', [SearchController::class, 'delete']);
+            Route::group([
+                'middleware' => 'role:viewer|admin'
+            ], function () {
+                Route::post('history', [SearchController::class, 'index']);
+                Route::post('get', [SearchController::class, 'search']);
+                Route::delete('{value}/delete', [SearchController::class, 'delete']);
+                Route::post('test', [SearchController::class, 'test']);
+            });
             Route::post('trending', [SearchController::class, 'trending']);
-            Route::post('test', [SearchController::class, 'test']);
         });
     });
 
