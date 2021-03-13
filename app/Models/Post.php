@@ -27,7 +27,7 @@ class Post extends Model implements Searchable
     }
     public function comments()
     {
-        return $this->hasMany('App\Models\Comment');
+        return $this->morphMany('App\Models\Comment', 'liketable');
     }
     public function likes()
     {
