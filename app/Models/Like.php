@@ -17,7 +17,7 @@ class Like extends Model
 
     public function user()
     {
-        return $this->belongsTo('App\Models\User')->select('url', 'profile_photo_path', 'name');
+        return $this->belongsTo('App\Models\User');
     }
 
     public function post()

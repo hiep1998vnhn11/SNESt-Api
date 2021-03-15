@@ -69,6 +69,8 @@ class PostController extends Controller
         $post->user;
         $post->loadCount('comments');
         $post->likes;
+        $post->isLiked = false;
+        $post->loadCount('likes');
         return $this->sendRespondSuccess(
             $post,
             'Create post successfully!'
@@ -136,11 +138,11 @@ class PostController extends Controller
         $post->user;
         $post->images;
         $post->loadCount(['likes' => function ($query) {
-            $query->where('status', 1);
+            $query->where('status', '>', 0);
         }]);
-        $liked = $post->likes->where('status', 1)->where('user_id', auth()->user()->id)->first();
-        if ($liked) $post->isLiked = false;
-        else $post->isLiked = true;
+        $likeStatus = $post->likes()->where('user_id', auth()->user()->id)->first();
+        if ($likeStatus) $post->likeStatus = $likeStatus->status;
+        else $post->likeStatus = 0;
         $post->loadCount('comments');
         $comments = $post->comments;
         foreach ($comments as $comment) {

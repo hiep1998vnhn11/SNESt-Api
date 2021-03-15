@@ -33,12 +33,15 @@ class LikeController extends Controller
         $isLikeCreated = $post->likes()
             ->where('user_id', auth()->user()->id)
             ->first();
-        if (!$isLikeCreated) { // not Liked anyone
+        if (!$isLikeCreated) {
+            //Nếu chưa like lần nào tiến hành tạo mới like
             $this->createLike($post, $requestStatus);
-        } else if ($isLikeCreated->status != 0) {
-            return $this->unlike($isLikeCreated, $message_success);
+        } else if ($isLikeCreated->status == $requestStatus) {
+            // Nếu like status bằng với status mà request gửi lên, tiến hành unlike
+            return $this->like($isLikeCreated, 0);
         } else return $this->like($isLikeCreated, $requestStatus);
-        return $this->sendRespondSuccess($post->likes->where('user_id', 1), null);
+        // Còn lại thì tiến hành chuyển đã like status về status request gửi lên
+        return $this->sendRespondSuccess($isLikeCreated, null);
     }
 
     /**
