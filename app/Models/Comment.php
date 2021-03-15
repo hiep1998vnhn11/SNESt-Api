@@ -14,9 +14,10 @@ class Comment extends Model
         return $this->belongsTo('App\Models\Post');
     }
 
+
     public function likes()
     {
-        return $this->morphMany('App\Models\Like', 'liketable');
+        return $this->morphMany('App\Models\Like', 'likeable')->orderBy('created_at', 'desc');
     }
 
     public function user()

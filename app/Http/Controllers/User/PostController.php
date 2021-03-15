@@ -67,6 +67,8 @@ class PostController extends Controller
         }
         $post->images;
         $post->user;
+        $post->comments;
+        $post->likes;
         return $this->sendRespondSuccess(
             $post,
             'Create post successfully!'

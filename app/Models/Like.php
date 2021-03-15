@@ -10,10 +10,11 @@ class Like extends Model
     use HasFactory;
     protected $table = 'likes';
 
-    public function liketable()
+    public function likeable()
     {
         return $this->morphTo();
     }
+
     public function user()
     {
         return $this->belongsTo('App\Models\User')->select('url', 'profile_photo_path', 'name');

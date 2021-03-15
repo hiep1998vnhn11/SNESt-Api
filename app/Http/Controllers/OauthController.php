@@ -2,57 +2,69 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\FacebookOauthRequest;
 use Illuminate\Http\Request;
 use Facebook\Facebook;
 use App\Models\Social;
 use Illuminate\Support\Facades\Log;
 use App\Models\User;
+use Spatie\Permission\Models\Role;
+use App\Models\Info;
 
 class OauthController extends Controller
 {
-    public function facebook(Request $request)
+    public function facebook(FacebookOauthRequest $request)
     {
-        $facebook = $request->only('access_token');
-        if (!$facebook || !isset($facebook['access_token'])) {
-            return $this->sendRespondError($facebook, 'Login facebook fail!', 500);
-        }
-        // Khởi tạo instance của Facebook Graph SDK
-        $fb = new Facebook([
+        $access_token = $request->access_token;
+        $facebookInstance = new Facebook([
             'app_id' => config('oauth.facebook.app_id'),
             'app_secret' => config('oauth.facebook.app_secret'),
         ]);
         try {
-            $response = $fb->get('/me?fields=id,name,email,link,birthday', $facebook['access_token']); // Lấy thông tin 
-            // user facebook sử dụng access_token được gửi lên từ client
-            $profile = $response->getGraphUser();
-            if (!$profile || !isset($profile['id'])) { // Nếu access_token không lấy đc thông tin hợp lệ thì trả về login false luôn
+            $response = $facebookInstance->get('/me?fields=id,picture,name,email,link,birthday,gender', $access_token);
+            $facebookUser = $response->getGraphUser();
+            if (!$facebookUser || !isset($facebookUser['id'])) {
                 return $this->sendRespondError($response, 'Login facebook fail!', 500);
             }
-            $email = $profile['email'] ?? null;
-            $social = Social::where('social_id', $profile['id'])->where('type', config('user.social_network.type.facebook'))->first();
-            // Lấy được userId của Facebook ta kiểm tra trong bảng social_networks đã có chưa, nếu có thì tài khoản facebook này 
-            // đã từng đăng nhập vào hệ thống ta chỉ cần lấy ra user rồi generate jwt trả về cho client; Ngược lại nếu chưa có thì 
-            // ta sẽ tiếp tục dùng email trả về từ facebook kiểm tra xem nếu có user với email như thế rồi thì lấy luôn user đó nếu 
-            // không thì tạo user mới với email trên và tạo bản ghi social_network lưu thông tin userId của facebook rồi generate jwt
-            // để trả về cho client
+            $email = $facebookUser['email'] ?? null;
+            $social = Social::where('provider_id', $facebookUser['id'])
+                ->where('provider_oauth', config('oauth.facebook.type'))
+                ->first();
+            $user = null;
             if ($social) {
                 $user = $social->user;
-            } else {
-                $user = $email ? User::firstOrCreate(['email' => $email]) : User::create();
-                $user->socialNetwork()->create([
-                    'social_id' => $profile['id'],
-                    'type' => config('user.social_network.type.facebook'),
-                ]);
-                $user->name = $profile['name'];
+            } else if ($email) {
+                $user = new User();
+                $user->email = $email;
+                $user->name = $facebookUser['name'];
+                $user->password = 1;
+                $user->url = $facebookUser['id'];
+                $user->profile_photo_path = $facebookUser['picture']['url'];
                 $user->save();
+                $role = Role::findById(1);
+                $user->assignRole($role);
+                $user->save();
+                $info = new Info;
+                $info->user_id = $user->id;
+                $info->profile_background_path = 'https://www.reachaccountant.com/wp-content/uploads/2016/06/Default-Background.png';
+                $info->birthday = $facebookUser['birthday'];
+                $info->gender = $facebookUser['gender'];
+                $info->save();
+                $social = new Social();
+                $social->user_id = $user->id;
+                $social->provider_oauth = config('oauth.facebook.type');
+                $social->provider_id = $facebookUser['id'];
+                $social->save();
+            } else {
+                return $this->sendRespondError($facebookUser, 'This user not have email!', 500);
             }
-
-            $token = JWTAuth::fromUser($user);
-
-            return $this->responseSuccess(compact('token', 'user'));
+            if (!$token = auth()->setTTL(7200)->tokenById($user->id)) {
+                return $this->sendRespondError($user, 'Unauthorized', config('const.STATUS_CODE_UNAUTHORIZED'));
+            }
+            return $this->respondWithToken($token);
         } catch (\Exception $e) {
             Log::error('Error when login with facebook: ' . $e->getMessage());
-            return $this->responseErrors(config('code.user.login_facebook_failed'), trans('messages.user.login_facebook_failed'));
+            return $this->sendRespondError($access_token, $e->getMessage(), 500);
         }
     }
 }

@@ -18,6 +18,7 @@ use App\Http\Controllers\User\ThreshController;
 use App\Http\Controllers\User\SearchController;
 
 use App\Http\Controllers\Notification\FriendController as NotificationFriendController;
+use App\Http\Controllers\OauthController;
 use App\Http\Controllers\User\RelationshipController;
 use Illuminate\Support\Testing\Fakes\NotificationFake;
 
@@ -37,9 +38,10 @@ Route::group([
     'prefix' => 'auth'
 ], function ($router) {
     Route::post('login', [AuthController::class, 'login']);
+    Route::post('facebook/login', [OauthController::class, 'facebook']);
     Route::post('register', [AuthController::class, 'register']);
     Route::post('logout', [AuthController::class, 'logout']);
-    Route::post('refresh', [AuthController::class, 'refresh']);
+    Route::post('token/refresh', [AuthController::class, 'refresh']);
     Route::post('me', [AuthController::class, 'me']);
 });
 
@@ -55,6 +57,7 @@ Route::group([
         Route::get('post/{post}/get', [PostController::class, 'get']);
         Route::get('post/store', [PostController::class, 'store']);
         Route::get('search/identify', [GuestSearchController::class, 'searchUserForIdentify']);
+        Route::post('search/trending', [SearchController::class, 'trending']);
     });
 
     Route::group([
@@ -174,16 +177,12 @@ Route::group([
 
         Route::group([
             'prefix' => 'search',
+            'middleware' => 'role:viewer|admin'
         ], function () {
-            Route::group([
-                'middleware' => 'role:viewer|admin'
-            ], function () {
-                Route::post('history', [SearchController::class, 'index']);
-                Route::post('get', [SearchController::class, 'search']);
-                Route::delete('{value}/delete', [SearchController::class, 'delete']);
-                Route::post('test', [SearchController::class, 'test']);
-            });
-            Route::post('trending', [SearchController::class, 'trending']);
+            Route::post('history', [SearchController::class, 'index']);
+            Route::post('get', [SearchController::class, 'search']);
+            Route::delete('{value}/delete', [SearchController::class, 'delete']);
+            Route::post('test', [SearchController::class, 'test']);
         });
     });
 

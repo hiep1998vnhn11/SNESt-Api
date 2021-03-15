@@ -27,11 +27,11 @@ class Post extends Model implements Searchable
     }
     public function comments()
     {
-        return $this->morphMany('App\Models\Comment', 'liketable');
+        return $this->hasMany('App\Models\Comment');
     }
     public function likes()
     {
-        return $this->hasMany('App\Models\Like');
+        return $this->morphMany('App\Models\Like', 'likeable')->orderBy('created_at', 'desc');
     }
     public function images()
     {

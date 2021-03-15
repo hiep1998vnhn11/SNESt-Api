@@ -70,7 +70,8 @@ class AuthController extends Controller
      */
     public function refresh()
     {
-        return $this->respondWithToken(auth()->refresh());
+        $token = auth()->setTTL(7200)->refresh(true, true);
+        return $this->respondWithToken($token);
     }
 
     public function register(RegisterRequest $request)
