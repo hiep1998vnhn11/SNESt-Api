@@ -15,4 +15,8 @@ class Page extends Model
         return $this->belongsTo('App\Models\User');
     }
 
+    public function likes()
+    {
+        return $this->morphMany('App\Models\Like', 'liketable');
+    }
 }

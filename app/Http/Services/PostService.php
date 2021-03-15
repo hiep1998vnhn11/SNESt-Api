@@ -23,18 +23,17 @@ class PostService
             foreach ($posts as $post) {
                 $post->user;
                 $post->loadCount(['likes' => function ($query) {
-                    $query->where('status', 1);
+                    $query->where('status', '>', 0);
                 }]);
-                $likes = $post->likes->where('status', 1);
-                foreach ($likes as $like) {
-                    $like->user;
-                    if (auth()->user() && $like->user_id == auth()->user()->id) {
-                        $post->isLiked = true;
-                    }
-                }
-                if (auth()->user() && !$post->isLiked) $post->isLiked = false;
+                $likes = $post->likes()->where('status', '>', 0)->with('user')->get();
+                $post->likes = $likes;
                 $post->loadCount('comments');
                 $post->images;
+                if (auth()->user()) {
+                    $likeStatus = $likes->where('user_id', auth()->user()->id)->first();
+                    if ($likeStatus) $post->likeStatus = $likeStatus->status;
+                    else $post->likeStatus = 0;
+                } else $post->likeStatus = 0;
             }
             return $posts;
         } else if ($type) {
@@ -66,18 +65,14 @@ class PostService
         foreach ($posts as $post) {
             $post->user;
             $post->loadCount(['likes' => function ($query) {
-                $query->where('status', 1);
+                $query->where('status', '>', 0);
             }]);
-            $likes = $post->likes->where('status', 1);
-            foreach ($likes as $like) {
-                $like->user;
-                if (auth()->user() && $like->user_id == auth()->user()->id) {
-                    $post->isLiked = true;
-                }
-            }
-            if (auth()->user() && !$post->isLiked) $post->isLiked = false;
+            $likes = $post->likes()->where('status', '>', 0)->with('user')->get();
             $post->loadCount('comments');
             $post->images;
+            $likeStatus = $likes->where('user_id', auth()->user()->id)->first();
+            if ($likeStatus) $post->likeStatus = $likeStatus->status;
+            else $post->likeStatus = 0;
         }
         return $posts;
     }

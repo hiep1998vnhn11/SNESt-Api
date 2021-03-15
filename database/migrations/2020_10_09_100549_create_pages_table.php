@@ -18,7 +18,9 @@ class CreatePagesTable extends Migration
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users');
             $table->string('name');
-            $table->text('photo_path');
+            $table->string('url')->unique();
+            $table->text('cover_photo_path');
+            $table->text('profile_photo_path');
             $table->timestamps();
         });
     }

@@ -31,7 +31,7 @@ class Post extends Model implements Searchable
     }
     public function likes()
     {
-        return $this->hasMany('App\Models\Like');
+        return $this->morphMany('App\Models\Like', 'likeable')->orderBy('created_at', 'desc');
     }
     public function images()
     {

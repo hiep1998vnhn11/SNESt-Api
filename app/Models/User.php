@@ -125,11 +125,6 @@ class User extends Authenticatable implements JWTSubject, Searchable
         return $this->hasMany('App\Models\Comment');
     }
 
-    public function likes()
-    {
-        return $this->hasMany('App\Models\Like');
-    }
-
     public function sub_comments()
     {
         return $this->hasMany('App\Models\SubComment');
@@ -200,5 +195,10 @@ class User extends Authenticatable implements JWTSubject, Searchable
     public function relationship_pending_friend()
     {
         return $this->relationships()->where('status', 0);
+    }
+
+    public function likes()
+    {
+        return $this->morphMany('App\Models\Like', 'liketable');
     }
 }
