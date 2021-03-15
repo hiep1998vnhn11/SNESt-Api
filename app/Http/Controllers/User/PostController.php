@@ -67,7 +67,7 @@ class PostController extends Controller
         }
         $post->images;
         $post->user;
-        $post->comments;
+        $post->loadCount('comments');
         $post->likes;
         return $this->sendRespondSuccess(
             $post,

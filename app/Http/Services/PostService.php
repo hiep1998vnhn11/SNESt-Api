@@ -23,16 +23,16 @@ class PostService
             foreach ($posts as $post) {
                 $post->user;
                 $post->loadCount(['likes' => function ($query) {
-                    $query->where('status', 1);
+                    $query->where('status', '>', 0);
                 }]);
-                $likes = $post->likes->where('status', 1);
+                $likes = $post->likes->where('status', '>', 0);
                 foreach ($likes as $like) {
                     $like->user;
                     if (auth()->user() && $like->user_id == auth()->user()->id) {
                         $post->isLiked = true;
                     }
                 }
-                if (auth()->user() && !$post->isLiked) $post->isLiked = false;
+                if (!$post->isLiked) $post->isLiked = false;
                 $post->loadCount('comments');
                 $post->images;
             }
