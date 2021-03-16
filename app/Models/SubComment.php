@@ -19,6 +19,10 @@ class SubComment extends Model
     {
         return $this->morphMany('App\Models\Like', 'likeable')->orderBy('created_at', 'desc');
     }
+    public function liked()
+    {
+        return $this->morphMany('App\Models\Like', 'likeable')->where('status', '>', 0)->orderBy('created_at', 'desc');
+    }
 
     public function user()
     {
@@ -28,5 +32,10 @@ class SubComment extends Model
     public function likeStatus()
     {
         return $this->morphOne('App\Models\Like', 'likeable')->where('user_id', auth()->user()->id);
+    }
+
+    public function images()
+    {
+        return $this->morphMany('App\Models\Like', 'imageable');
     }
 }

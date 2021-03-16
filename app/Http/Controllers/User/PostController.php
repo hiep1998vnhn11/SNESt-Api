@@ -60,7 +60,8 @@ class PostController extends Controller
                 Storage::disk('s3')->setVisibility($image_photo_path, 'public');
                 $path = Storage::disk('s3')->url($image_photo_path);
                 $image = new Image();
-                $image->post_id = $post->id;
+                $image->imageable_type = 'App\Models\Post';
+                $image->imageable_id = $post->id;
                 $image->path = $path;
                 $image->save();
             }
@@ -162,7 +163,11 @@ class PostController extends Controller
             ->withCount('liked')
             ->with('likeStatus')
             ->with('sub_comments', function ($sub_comment) {
-                $sub_comment->with('user');
+                $sub_comment->with('user')
+                    ->withCount('liked')
+                    ->with('likes', function ($like) {
+                        $like->where('status', '>', 0);
+                    });
             })
             ->get();
         return $this->sendRespondSuccess($comments, 'Get comment successfully!');

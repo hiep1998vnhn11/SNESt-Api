@@ -9,8 +9,9 @@ class Image extends Model
 {
     use HasFactory;
     protected $table = 'images';
-    public function post()
+
+    public function imageable()
     {
-        return $this->belongsTo('App\Models\Post');
+        return $this->morphTo();
     }
 }

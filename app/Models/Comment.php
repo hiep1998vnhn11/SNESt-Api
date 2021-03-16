@@ -36,4 +36,9 @@ class Comment extends Model
     {
         return $this->morphOne('App\Models\Like', 'likeable')->where('user_id', auth()->user()->id);
     }
+
+    public function images()
+    {
+        return $this->morphMany('App\Models\Like', 'imageable');
+    }
 }
