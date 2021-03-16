@@ -55,6 +55,7 @@ Route::group([
     ], function () {
         Route::get('user/get', [UserController::class, 'getForGuest']);
         Route::get('post/{post}/get', [PostController::class, 'get']);
+        Route::get('post/{post}/get_comment', [PostController::class, 'getCommentGuest']);
         Route::get('post/store', [PostController::class, 'store']);
         Route::get('search/identify', [GuestSearchController::class, 'searchUserForIdentify']);
         Route::post('search/trending', [SearchController::class, 'trending']);
@@ -81,12 +82,11 @@ Route::group([
             'middleware' => 'role:viewer'
         ], function () {
             Route::get('store', [RelationshipController::class, 'store']);
-            Route::post('{user}/friend', [RelationshipController::class, 'addFriend']);
-            Route::post('{user}/block', [RelationshipController::class, 'block']);
-            Route::post('{user}/unfriend', [RelationshipController::class, 'unFriend']);
-            Route::post('{user}/unblock', [RelationshipController::class, 'unBlock']);
+            Route::post('user/{user}/friend', [RelationshipController::class, 'addFriend']);
+            Route::post('user/{user}/block', [RelationshipController::class, 'block']);
+            Route::post('user/{user}/unfriend', [RelationshipController::class, 'unFriend']);
+            Route::post('user/{user}/unblock', [RelationshipController::class, 'unBlock']);
         });
-
         // Post
         Route::group([
             'prefix' => 'post',
@@ -108,11 +108,14 @@ Route::group([
                 Route::post('{comment}/create_sub_comment', [SubCommentController::class, 'create']);
                 Route::post('{comment}/delete', [CommentController::class, 'delete']);
                 Route::post('{comment}/update', [CommentController::class, 'update']);
+                Route::get('{comment}/get_sub_comment', [CommentController::class, 'getSubComment']);
+                Route::post('{comment}/handle_like', [LikeController::class, 'handle_like_comment']);
                 Route::group([
                     'prefix' => 'sub_comment',
                 ], function () {
                     Route::post('{sub_comment}/update', [SubCommentController::class, 'update']);
                     Route::post('{sub_comment}/delete', [SubCommentController::class, 'delete']);
+                    Route::post('{sub_comment}/handle_like', [LikeController::class, 'handle_like_sub_comment']);
                 });
             });
         });

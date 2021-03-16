@@ -19,4 +19,9 @@ class Page extends Model
     {
         return $this->morphMany('App\Models\Like', 'liketable');
     }
+
+    public function likeStatus()
+    {
+        return $this->morphOne('App\Models\Like', 'likeable')->where('user_id', auth()->user()->id);
+    }
 }

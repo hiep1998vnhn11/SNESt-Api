@@ -25,7 +25,7 @@ class PostController extends Controller
 
     public function __construct(PostService $postService)
     {
-        $this->middleware('auth:api')->except(['get', 'store']);
+        $this->middleware('auth:api')->except(['get', 'store', 'getCommentGuest']);
         $this->postService = $postService;
     }
     /**
@@ -137,24 +137,19 @@ class PostController extends Controller
     {
         $post->user;
         $post->images;
-        $post->loadCount(['likes' => function ($query) {
-            $query->where('status', '>', 0);
-        }]);
-        $likeStatus = $post->likes()->where('user_id', auth()->user()->id)->first();
-        if ($likeStatus) $post->likeStatus = $likeStatus->status;
-        else $post->likeStatus = 0;
+        $post->loadCount('liked');
         $post->loadCount('comments');
-        $comments = $post->comments;
-        foreach ($comments as $comment) {
-            $comment->loadCount('sub_comments');
-            $comment->user;
-            if ($comment->sub_comments_count != 0) {
-                $post->comments_count += $comment->sub_comments_count;
-                $sub_comments = $comment->sub_comments;
-                foreach ($sub_comments as $sub_comment)
-                    $sub_comment->user;
-            }
-        }
+        $post->likeStatus;
+        $post->comments = $post->comments()
+            ->withCount('sub_comments')
+            ->with('user')
+            ->with('likes', function ($like) {
+                $like->where('status', '>', 0);
+            })
+            ->with('sub_comments', function ($sub_comment) {
+                $sub_comment->with('user');
+            })
+            ->get();
         return $this->sendRespondSuccess(
             $post,
             'Get Post successfully!'
@@ -162,19 +157,29 @@ class PostController extends Controller
     }
     public function getComment(Post $post)
     {
-        $comments = $post->comments;
-        foreach ($comments as $comment) {
-            $comment->user;
-            $comment->loadCount('sub_comments');
-            $comment->sub_comments;
-            if ($comment->sub_comments_count != 0) {
-                $sub_comments = $comment->sub_comments;
-                foreach ($sub_comments as $sub_comment)
-                    $sub_comment->user;
-            }
-        }
+        $comments = $post->comments()->withCount('sub_comments')
+            ->with('user')
+            ->withCount('liked')
+            ->with('likeStatus')
+            ->with('sub_comments', function ($sub_comment) {
+                $sub_comment->with('user');
+            })
+            ->get();
         return $this->sendRespondSuccess($comments, 'Get comment successfully!');
     }
+
+    public function getCommentGuest(Post $post)
+    {
+        $comments = $post->comments()->withCount('sub_comments')
+            ->with('user')
+            ->with('likes', function ($like) {
+                $like->where('status', '>', 0)
+                    ->with('user');
+            })
+            ->get();
+        return $this->sendRespondSuccess($comments, 'Get comment successfully!');
+    }
+
 
     public function store(StorePostRequest $request)
     {

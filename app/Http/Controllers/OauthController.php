@@ -21,7 +21,7 @@ class OauthController extends Controller
             'app_secret' => config('oauth.facebook.app_secret'),
         ]);
         try {
-            $response = $facebookInstance->get('/me?fields=id,picture,name,email,link,birthday,gender', $access_token);
+            $response = $facebookInstance->get('/me?fields=id,picture.width(1000),name,email,link,birthday,gender', $access_token);
             $facebookUser = $response->getGraphUser();
             if (!$facebookUser || !isset($facebookUser['id'])) {
                 return $this->sendRespondError($response, 'Login facebook fail!', 500);

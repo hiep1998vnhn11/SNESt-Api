@@ -24,7 +24,7 @@ class HandleLikeRequest extends FormRequest
     public function rules()
     {
         return [
-            'status' => 'required|digits_between:0,5|min:1|max:1'
+            'status' => 'required|digits_between:0,7|min:1|max:1'
         ];
     }
 }

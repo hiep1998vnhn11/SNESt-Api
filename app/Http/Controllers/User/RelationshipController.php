@@ -16,7 +16,7 @@ class RelationshipController extends Controller
 
     public function store()
     {
-        $relationships = auth()->user()->requester()->where('status', 2)->get();
+        $relationships = auth()->user()->requester()->where('status', '3')->get();
         return $this->sendRespondSuccess($relationships, 'Store relationships');
     }
 
@@ -27,6 +27,7 @@ class RelationshipController extends Controller
             ->where('requester_id', $user->id)
             ->orWhere('addressee_id', $user->id)
             ->first();
+        return $checkRelationship;
         if ($checkRelationship) {
             switch ($checkRelationship->status) {
                 case 0: //Accept friend
@@ -54,8 +55,9 @@ class RelationshipController extends Controller
             $relationship = new Relationship();
             $relationship->requester_id = auth()->user()->id;
             $relationship->addressee_id = $user->id;
-            $relationship->requester_id = auth()->user()->id;
+            $relationship->action_id = auth()->user()->id;
             $relationship->status = 1;
+            $relationship->save();
         }
         return $this->sendRespondSuccess($checkRelationship ?? $relationship, 'add friend success!');
     }
@@ -77,7 +79,7 @@ class RelationshipController extends Controller
             $relationship->requester_id = auth()->user()->id;
             $relationship->status = 3;
         }
-        return $this->sendRespondSuccess($checkRelationship ?? $relationship, 'add friend success!');
+        return $this->sendRespondSuccess($checkRelationship ?? $relationship, 'Block success!');
     }
     public function unBlock(User $user)
     {

@@ -4,9 +4,11 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\HandleLikeRequest;
+use App\Models\Comment;
 use Illuminate\Http\Request;
 use App\Models\Post;
 use App\Models\Like;
+use App\Models\SubComment;
 
 class LikeController extends Controller
 {
@@ -24,7 +26,7 @@ class LikeController extends Controller
     public function handle_like(Post $post, HandleLikeRequest $request)
     {
         $requestStatus = $request->status;
-        $message_success = 'Handle like successfully!';
+        $type = 'App\Models\Post';
         if ($post->privacy == 'blocked')
             return $this->sendBlocked();
         else if ($post->privacy == 'private' && $post->user_id != auth()->user()->id)
@@ -35,7 +37,45 @@ class LikeController extends Controller
             ->first();
         if (!$isLikeCreated) {
             //Nếu chưa like lần nào tiến hành tạo mới like
-            $this->createLike($post, $requestStatus);
+            $this->createLike($post->id, $requestStatus, $type);
+        } else if ($isLikeCreated->status == $requestStatus) {
+            // Nếu like status bằng với status mà request gửi lên, tiến hành unlike
+            return $this->like($isLikeCreated, 0, $type);
+        } else return $this->like($isLikeCreated, $requestStatus, $type);
+        // Còn lại thì tiến hành chuyển đã like status về status request gửi lên
+        return $this->sendRespondSuccess($isLikeCreated, null);
+    }
+
+    public function handle_like_comment(Comment $comment, HandleLikeRequest $request)
+    {
+        $requestStatus = $request->status;
+        $type = 'App\Models\Comment';
+        // isLiked return a like if user had liked a post
+        $isLikeCreated = $comment->likes()
+            ->where('user_id', auth()->user()->id)
+            ->first();
+        if (!$isLikeCreated) {
+            //Nếu chưa like lần nào tiến hành tạo mới like
+            $this->createLike($comment->id, $requestStatus, $type);
+        } else if ($isLikeCreated->status == $requestStatus) {
+            // Nếu like status bằng với status mà request gửi lên, tiến hành unlike
+            return $this->like($isLikeCreated, 0);
+        } else return $this->like($isLikeCreated, $requestStatus);
+        // Còn lại thì tiến hành chuyển đã like status về status request gửi lên
+        return $this->sendRespondSuccess($isLikeCreated, null);
+    }
+
+    public function handle_like_sub_comment(SubComment $sub_comment, HandleLikeRequest $request)
+    {
+        $requestStatus = $request->status;
+        $type = 'App\Models\SubComment';
+        // isLiked return a like if user had liked a post
+        $isLikeCreated = $sub_comment->likes()
+            ->where('user_id', auth()->user()->id)
+            ->first();
+        if (!$isLikeCreated) {
+            //Nếu chưa like lần nào tiến hành tạo mới like
+            $this->createLike($sub_comment->id, $requestStatus, $type);
         } else if ($isLikeCreated->status == $requestStatus) {
             // Nếu like status bằng với status mà request gửi lên, tiến hành unlike
             return $this->like($isLikeCreated, 0);
@@ -47,16 +87,18 @@ class LikeController extends Controller
     /**
      * Create a new like field on post.
      *
-     * @param  Post $post, $message
+     * @param  Post $post
+     * @param  Digit $status
+     * @param  StringModels $type
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function createLike($post, $status)
+    public function createLike($id, $status, $type = 'App\Models\Post')
     {
         $like = new Like;
         $like->user_id = auth()->user()->id;
-        $like->likeable_type = 'App\Models\Post';
-        $like->likeable_id = $post->id;
+        $like->likeable_type = $type;
+        $like->likeable_id = $id;
         $like->status = $status;
         $like->save();
         return $this->sendRespondSuccess($like, 'create like success with status like ' . $status);
@@ -66,6 +108,8 @@ class LikeController extends Controller
      * Handle unlike => like a Post.
      *
      * @param  Like $like
+     *  @param  Digit $status
+     *  @param  String $type
      *
      * @return \Illuminate\Http\JsonResponse
      */

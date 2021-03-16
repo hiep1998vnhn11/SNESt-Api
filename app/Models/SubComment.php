@@ -22,6 +22,11 @@ class SubComment extends Model
 
     public function user()
     {
-        return $this->belongsTo('App\Models\user')->select('id', 'url', 'profile_photo_path', 'name');
+        return $this->belongsTo('App\Models\user');
+    }
+
+    public function likeStatus()
+    {
+        return $this->morphOne('App\Models\Like', 'likeable')->where('user_id', auth()->user()->id);
     }
 }

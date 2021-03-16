@@ -19,22 +19,14 @@ class PostService
         $type = Arr::get($param, 'type', null);
         if ($userUrl) { //Get user by user url (not require auth)
             $user = User::where('url', $userUrl)->first();
-            $posts = $user->posts()->orderBy('created_at', 'desc')->paginate($limit);
-            foreach ($posts as $post) {
-                $post->user;
-                $post->loadCount(['likes' => function ($query) {
-                    $query->where('status', '>', 0);
-                }]);
-                $likes = $post->likes()->where('status', '>', 0)->with('user')->get();
-                $post->likes = $likes;
-                $post->loadCount('comments');
-                $post->images;
-                if (auth()->user()) {
-                    $likeStatus = $likes->where('user_id', auth()->user()->id)->first();
-                    if ($likeStatus) $post->likeStatus = $likeStatus->status;
-                    else $post->likeStatus = 0;
-                } else $post->likeStatus = 0;
+            $posts = $user->posts()->orderBy('created_at', 'desc')
+                ->with(['user', 'images',])
+                ->withCount('liked')
+                ->withCount('comments');
+            if (auth()->user()) {
+                $posts = $posts->with('likeStatus');
             }
+            $posts = $posts->paginate($limit);
             return $posts;
         } else if ($type) {
             switch ($type) {
@@ -61,19 +53,10 @@ class PostService
         $posts = Post::whereYear('created_at', '=', Carbon::now()->year)
             ->whereIn('user_id', $users)
             ->orderBy('created_at', 'desc')
+            ->with(['user', 'likeStatus', 'images'])
+            ->withCount('comments')
+            ->withCount('liked')
             ->paginate($limit);
-        foreach ($posts as $post) {
-            $post->user;
-            $post->loadCount(['likes' => function ($query) {
-                $query->where('status', '>', 0);
-            }]);
-            $likes = $post->likes()->where('status', '>', 0)->with('user')->get();
-            $post->loadCount('comments');
-            $post->images;
-            $likeStatus = $likes->where('user_id', auth()->user()->id)->first();
-            if ($likeStatus) $post->likeStatus = $likeStatus->status;
-            else $post->likeStatus = 0;
-        }
         return $posts;
     }
 }
