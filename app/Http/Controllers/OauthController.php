@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\FacebookOauthRequest;
+use App\Http\Requests\GoogleOauthRequest;
 use Illuminate\Http\Request;
 use Facebook\Facebook;
+use Google\Client;
 use App\Models\Social;
 use Illuminate\Support\Facades\Log;
 use App\Models\User;
@@ -24,7 +26,7 @@ class OauthController extends Controller
             $response = $facebookInstance->get('/me?fields=id,picture.width(1000),name,email,link,birthday,gender', $access_token);
             $facebookUser = $response->getGraphUser();
             if (!$facebookUser || !isset($facebookUser['id'])) {
-                return $this->sendRespondError($response, 'Login facebook fail!', 500);
+                return $this->sendRespondError($response, 'Unauthorized', config('const.STATUS_CODE_UNAUTHORIZED'));
             }
             $email = $facebookUser['email'] ?? null;
             $social = Social::where('provider_id', $facebookUser['id'])
@@ -34,22 +36,25 @@ class OauthController extends Controller
             if ($social) {
                 $user = $social->user;
             } else if ($email) {
-                $user = new User();
-                $user->email = $email;
-                $user->name = $facebookUser['name'];
-                $user->password = 1;
-                $user->url = $facebookUser['id'];
-                $user->profile_photo_path = $facebookUser['picture']['url'];
-                $user->save();
-                $role = Role::findById(1);
-                $user->assignRole($role);
-                $user->save();
-                $info = new Info;
-                $info->user_id = $user->id;
-                $info->profile_background_path = 'https://www.reachaccountant.com/wp-content/uploads/2016/06/Default-Background.png';
-                $info->birthday = $facebookUser['birthday'];
-                $info->gender = $facebookUser['gender'];
-                $info->save();
+                $user = User::where('email', $email)->first();
+                if (!$user) {
+                    $user = new User();
+                    $user->email = $email;
+                    $user->name = $facebookUser['name'];
+                    $user->password = 1;
+                    $user->url = $facebookUser['id'];
+                    $user->profile_photo_path = $facebookUser['picture']['url'];
+                    $user->save();
+                    $role = Role::findById(1);
+                    $user->assignRole($role);
+                    $user->save();
+                    $info = new Info;
+                    $info->user_id = $user->id;
+                    $info->profile_background_path = 'https://www.reachaccountant.com/wp-content/uploads/2016/06/Default-Background.png';
+                    $info->birthday = $facebookUser['birthday'];
+                    $info->gender = $facebookUser['gender'];
+                    $info->save();
+                }
                 $social = new Social();
                 $social->user_id = $user->id;
                 $social->provider_oauth = config('oauth.facebook.type');
@@ -63,8 +68,57 @@ class OauthController extends Controller
             }
             return $this->respondWithToken($token);
         } catch (\Exception $e) {
-            Log::error('Error when login with facebook: ' . $e->getMessage());
             return $this->sendRespondError($access_token, $e->getMessage(), 500);
+        }
+    }
+
+    public function google(GoogleOauthRequest $request)
+    {
+        $idToken = $request->id_token;
+        try {
+            $client = new Client(['client_id' => config('oauth.google.client_id')]);
+            $googleUser = $client->verifyIdToken($idToken);
+            if (!$googleUser) {
+                return $this->sendRespondError($idToken, 'Unauthorized', config('const.STATUS_CODE_UNAUTHORIZED'));
+            }
+            $social = Social::where('provider_id', $googleUser['sub'])
+                ->where('provider_oauth', config('oauth.google.type'))
+                ->first();
+            $user = null;
+            if ($social) {
+                $user = $social->user;
+            } else {
+                $user = User::where('email', $googleUser['email'])->first();
+                if (!$user) {
+                    $user = new User();
+                    $user->email = $googleUser['email'];
+                    $user->name = $googleUser['name'];
+                    $user->password = 1;
+                    $user->url = $googleUser['sub'];
+                    $user->profile_photo_path = $googleUser['picture'];
+                    $user->save();
+                    $role = Role::findById(1);
+                    $user->assignRole($role);
+                    $user->save();
+                    $info = new Info;
+                    $info->user_id = $user->id;
+                    $info->profile_background_path = 'https://www.reachaccountant.com/wp-content/uploads/2016/06/Default-Background.png';
+                    $info->birthday = null;
+                    $info->gender = null;
+                    $info->save();
+                }
+                $social = new Social();
+                $social->user_id = $user->id;
+                $social->provider_oauth = config('oauth.google.type');
+                $social->provider_id = $googleUser['sub'];
+                $social->save();
+            }
+            if (!$token = auth()->setTTL(7200)->tokenById($user->id)) {
+                return $this->sendRespondError($user, 'Unauthorized', config('const.STATUS_CODE_UNAUTHORIZED'));
+            }
+            return $this->respondWithToken($token);
+        } catch (\Exception $e) {
+            return $this->sendRespondError($idToken, $e->getMessage(), 500);
         }
     }
 }
