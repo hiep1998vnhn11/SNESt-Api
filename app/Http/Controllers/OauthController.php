@@ -35,13 +35,13 @@ class OauthController extends Controller
             $user = null;
             if ($social) {
                 $user = $social->user;
-            } else if ($email) {
+            } else {
                 $user = User::where('email', $email)->first();
                 if (!$user) {
                     $user = new User();
                     $user->email = $email;
                     $user->name = $facebookUser['name'];
-                    $user->password = 1;
+                    $user->password = null;
                     $user->url = $facebookUser['id'];
                     $user->profile_photo_path = $facebookUser['picture']['url'];
                     $user->save();
@@ -60,9 +60,10 @@ class OauthController extends Controller
                 $social->provider_oauth = config('oauth.facebook.type');
                 $social->provider_id = $facebookUser['id'];
                 $social->save();
-            } else {
-                return $this->sendRespondError($facebookUser, 'This user not have email!', 500);
             }
+            // else {
+            //     return $this->sendRespondError($facebookUser, 'This user not have email!', 500);
+            // }
             if (!$token = auth()->setTTL(7200)->tokenById($user->id)) {
                 return $this->sendRespondError($user, 'Unauthorized', config('const.STATUS_CODE_UNAUTHORIZED'));
             }
@@ -93,7 +94,7 @@ class OauthController extends Controller
                     $user = new User();
                     $user->email = $googleUser['email'];
                     $user->name = $googleUser['name'];
-                    $user->password = 1;
+                    $user->password = null;
                     $user->url = $googleUser['sub'];
                     $user->profile_photo_path = $googleUser['picture'];
                     $user->save();
@@ -104,7 +105,6 @@ class OauthController extends Controller
                     $info->user_id = $user->id;
                     $info->profile_background_path = 'https://www.reachaccountant.com/wp-content/uploads/2016/06/Default-Background.png';
                     $info->birthday = null;
-                    $info->gender = null;
                     $info->save();
                 }
                 $social = new Social();

@@ -16,7 +16,7 @@ class CreateInfosTable extends Migration
         Schema::create('infos', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
-            $table->enum('gender', ['male', 'female']);
+            $table->enum('gender', ['male', 'female'])->default('male');
             $table->text('profile_background_path')->nullable();
             $table->date('birthday')->nullable();
             $table->string('phone_number')->nullable();

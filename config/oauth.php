@@ -6,6 +6,7 @@ return [
     'type' => 'facebook'
   ],
   'google' => [
-    'client_id' => env('OAUTH_GOOGLE_CLIENT_ID', null)
+    'client_id' => env('OAUTH_GOOGLE_CLIENT_ID', null),
+    'type' => 'google'
   ]
 ];
