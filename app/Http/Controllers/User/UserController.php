@@ -30,7 +30,7 @@ class UserController extends Controller
             return $this->sendRespondError(
                 null,
                 'Not found User!',
-                config('const.STATUS_CODE_BAD_REQUEST')
+                config('const.STATUS_CODE_NOT_FOUND')
             );
         $user = $this->findUser($user_url);
         if (!$user) return $this->sendRespondError(
@@ -38,16 +38,9 @@ class UserController extends Controller
             'Not found User!',
             config('const.STATUS_CODE_NOT_FOUND')
         );
-        $friends = $user->friends()
-            ->select('friend_id')
-            ->where('status', 1)
-            ->where('blocked', 0)
-            ->with('user_friend')
-            ->get();
+        $friends = $user->friends()->where('status', 1)->get();
         $user->friends = $friends;
         $user->friends_count = count($friends);
-        $user->relationships;
-        $user->loadCount('relationships');
         $info = $user->info;
         $info->jobs;
         $info->educates;
@@ -60,56 +53,24 @@ class UserController extends Controller
             return $this->sendRespondError(
                 null,
                 'Not found User!',
-                config('const.STATUS_CODE_BAD_REQUEST')
+                config('const.STATUS_CODE_NOT_FOUND')
             );
         if ($user_url == auth()->user()->url) $user = auth()->user();
         else $user = $this->findUser($user_url);
         if (!$user) return $this->sendRespondError(
             null,
             'Not found User!',
-            config('const.STATUS_CODE_BAD_REQUEST')
+            config('const.STATUS_CODE_NOT_FOUND')
         );
-        $friends = $user->friends()
-            ->select('friend_id', 'id')
-            ->where('status', 1)
-            ->where('blocked', 0)
-            ->with('user_friend')
-            ->get();
-        if ($user_url == auth()->user()->url) {
-            $user->friend_status = config('const.FRIEND_STATUS_NONE');
-        } else {
-            $friendOnYourSide = false;
-            $friendOnOtherSide = false;
-            $friend_status_id = null;
-            foreach ($friends as $friend) { // Friend of this user url
-                $friend->user_friend;
-                if ($friend->friend_id == auth()->user()->id) {
-                    $friendOnOtherSide = true;
-                    $friend_status_id = $friend->id;
-                }
-            }
-            $yourFriend = auth()->user()
-                ->friends()
-                ->where('status', 1)
-                ->where('blocked', 0)
-                ->where('friend_id', $user->id)
-                ->first();
-            if ($yourFriend) $friendOnYourSide = true;
-            $status = config('const.FRIEND_STATUS_NONE');
-            if ($friendOnOtherSide && $friendOnYourSide) $status = config('const.FRIEND_STATUS_FRIEND');
-            else if ($friendOnOtherSide && !$friendOnYourSide) {
-                $status = config('const.FRIEND_STATUS_THEY_SENT');
-                $user->friend_id = $friend_status_id;
-            } else if ($friendOnYourSide && !$friendOnOtherSide) {
-                $status = config('const.FRIEND_STATUS_YOU_SENT');
-                $user->friend_id = $yourFriend->id;
-            }
-            $user->friend_status = $status;
-        }
+        $friends = $user->friends()->where('status', 1)->get();
         $user->friends = $friends;
         $user->friends_count = count($friends);
-        $user->relationships;
-        $user->loadCount('relationships');
+        if ($user_url == auth()->user()->url) {
+            $user->myRelation = null;
+        } else {
+            $myRelation = auth()->user()->friends()->where('friend_id', $user->id)->first();
+            $user->myRelation = $myRelation;
+        }
         $info = $user->info;
         $info->jobs;
         $info->educates;

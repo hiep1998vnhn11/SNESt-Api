@@ -39,7 +39,7 @@ class Post extends Model implements Searchable
     }
     public function images()
     {
-        return $this->morphMany('App\Models\Like', 'imageable');
+        return $this->morphMany('App\Models\Image', 'imageable');
     }
 
     public function likeStatus()

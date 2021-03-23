@@ -78,11 +78,13 @@ Route::group([
 
 
         Route::post('friend/get', [FriendController::class, 'get']);
+
         Route::group([
             'prefix' => 'relationship',
             'middleware' => 'role:viewer'
         ], function () {
-            Route::get('store', [RelationshipController::class, 'store']);
+            Route::get('friend/store', [RelationshipController::class, 'store']);
+            Route::get('requesting/store', [RelationshipController::class, 'storeRequesting']);
             Route::post('user/{user}/friend', [RelationshipController::class, 'addFriend']);
             Route::post('user/{user}/block', [RelationshipController::class, 'block']);
             Route::post('user/{user}/unfriend', [RelationshipController::class, 'unFriend']);

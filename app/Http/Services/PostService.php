@@ -20,7 +20,7 @@ class PostService
         if ($userUrl) { //Get user by user url (not require auth)
             $user = User::where('url', $userUrl)->first();
             $posts = $user->posts()->orderBy('created_at', 'desc')
-                ->with(['user', 'images',])
+                ->with(['user', 'images'])
                 ->withCount('liked')
                 ->withCount('comments');
             if (auth()->user()) {
@@ -44,11 +44,10 @@ class PostService
     {
         $user = auth()->user();
         $users = [$user->id];
-        $friends = $user->friends()->select('friend_id')->where('status', 1)->where('blocked', 0)->get();
+        $friends = $user->friends()->where('status', 1)->get();
         foreach ($friends as $friend) {
-            $friend_id = $friend->friend_id;
-            if ($user->id != $friend_id)
-                array_push($users, $friend_id);
+            if ($user->id != $friend->friend_id)
+                array_push($users, $friend->friend_id);
         }
         $posts = Post::whereYear('created_at', '=', Carbon::now()->year)
             ->whereIn('user_id', $users)

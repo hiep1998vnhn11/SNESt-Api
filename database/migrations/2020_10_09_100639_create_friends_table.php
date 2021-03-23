@@ -19,8 +19,7 @@ class CreateFriendsTable extends Migration
             $table->unsignedBigInteger('friend_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('friend_id')->references('id')->on('users')->onDelete('cascade');
-            $table->boolean('status')->default(1);
-            $table->boolean('blocked')->default(0);
+            $table->enum('status', [0, 1, 2, 3])->default(0);
             $table->timestamps();
         });
     }

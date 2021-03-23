@@ -163,40 +163,6 @@ class User extends Authenticatable implements JWTSubject, Searchable
         ];
     }
 
-    public function requester()
-    {
-        return $this->hasMany('App\Models\Relationship', 'requester_id');
-    }
-    public function addressee()
-    {
-        return $this->hasMany('App\Models\Relationship', 'addressee_id');
-    }
-
-    public function relationships()
-    {
-        return $this->requester()->union($this->addressee())->with(['requester_user', 'addressee_user'])->orderBy('created_at', 'desc');
-    }
-
-    public function relationship_friend()
-    {
-        return $this->relationships()->where('status', '1');
-    }
-
-    public function relationship_block()
-    {
-        return $this->relationships()->where('status', '3');
-    }
-
-    public function relationship_unfriend()
-    {
-        return $this->relationships()->where('status', '2');
-    }
-
-    public function relationship_pending_friend()
-    {
-        return $this->relationships()->where('status', '0');
-    }
-
     public function likes()
     {
         return $this->morphMany('App\Models\Like', 'likeable');

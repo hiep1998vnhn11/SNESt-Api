@@ -21,12 +21,13 @@ class FriendController extends Controller
         $this->friendService = $friendService;
     }
 
-    public function handleFriend(FriendRequest $request)
+    public function handleFriend(FriendRequest $request, User $user)
     {
-        $message_success = 'Handle friend successfully!';
-        $message_error = 'Handle friend fail! Please try again!';
+        $relation = auth()->user()->friends()
+            ->where('friend_id', $user->id)
+            ->first();
         $data = $this->friendService->handleFriend($request->all());
-        if (!$data) return $this->sendRespondError(null, $message_error, config('const.STATUS_CODE_UN_PROCESSABLE'));
+        if (!$data) return $this->sendRespondError(null, 'handle failed!', config('const.STATUS_CODE_UN_PROCESSABLE'));
         else {
             $friend = User::findOrFail($data->friend_id);
             $isNotification = false;
@@ -48,7 +49,7 @@ class FriendController extends Controller
                 $noti->read_at = null;
                 $noti->save();
             }
-            return $this->sendRespondSuccess($noti, $message_success);
+            return $this->sendRespondSuccess($noti, 'Handle success!');
         }
     }
 

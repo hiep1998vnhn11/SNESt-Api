@@ -16,10 +16,10 @@ return [
 
     'STATUS_CODE_SERVER_ERROR'      => 500,
 
-    'FRIEND_STATUS_NONE'            => 0,   //don't know yet
+    'FRIEND_STATUS_PENDING'         => 0,   //don't know yet
     'FRIEND_STATUS_FRIEND'          => 1,   // is friend
-    'FRIEND_STATUS_BLOCK'           => 2,   // You block
-    'FRIEND_STATUS_BLOCKED_BY_USER' => 3,   // your are blocked
+    'FRIEND_STATUS_NONE'            => 2,   // You block
+    'FRIEND_STATUS_BLOCK'           => 3,   // your are blocked
     'FRIEND_STATUS_YOU_SENT'        => 4,   // You sent request friend
     'FRIEND_STATUS_THEY_SENT'       => 5,   //they sent
 ];
