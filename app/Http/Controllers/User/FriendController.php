@@ -36,6 +36,7 @@ class FriendController extends Controller
                 if ($notification->data["id"] == $data->id) {
                     $isNotification = true;
                     $noti = $notification;
+                    break;
                 }
             }
             if (!$isNotification) {

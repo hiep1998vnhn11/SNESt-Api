@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\CommentRequest;
 use App\Models\Comment;
 use App\Models\Post;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class CommentController extends Controller
@@ -31,9 +32,8 @@ class CommentController extends Controller
                 'Content or image is required!',
                 config('const.STATUS_CODE_UN_PROCESSABLE')
             );
-        if ($post->privacy == 'blocked')
-            return $this->sendBlocked();
-        else if ($post->privacy == 'private' && $post->user_id != auth()->user()->id)
+        if ($post->privacy == 'blocked') return $this->sendBlocked();
+        if ($post->privacy == 'private' && $post->user_id != auth()->user()->id)
             return $this->sendForbidden();
         $comment = new Comment();
         if ($request->content)
@@ -43,6 +43,28 @@ class CommentController extends Controller
         $comment->post_id = $post->id;
         $comment->user_id = auth()->user()->id;
         $comment->save();
+        $isNotification = false;
+        foreach ($post->user->notifications()->where('type', 'App\Notifications\CommentNotification')->get() as $notification) {
+            if ($notification->data->post_id == $post->id) {
+                $notification->data = [
+                    'post_id' => $post->id,
+                    'username' => auth()->user()->name,
+                    'image' => auth()->user()->profile_photo_path
+                ];
+                $notification->updated_at = Carbon::now();
+                $notification->read_at = null;
+                $notification->save();
+                $isNotification = true;
+                break;
+            }
+        }
+        if (!$isNotification) {
+            $post->user->notify([
+                'post_id' => $post->id,
+                'username' => auth()->user()->name,
+                'image' => auth()->user()->profile_photo_path
+            ]);
+        }
         return $this->sendRespondSuccess(
             $comment,
             'Create comment successfully!'

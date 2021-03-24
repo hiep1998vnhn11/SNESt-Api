@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use App\Models\Post;
 use App\Models\Like;
 use App\Models\SubComment;
+use App\Notifications\LikeNotification;
+use Carbon\Carbon;
 
 class LikeController extends Controller
 {
@@ -27,9 +29,8 @@ class LikeController extends Controller
     {
         $requestStatus = $request->status;
         $type = 'App\Models\Post';
-        if ($post->privacy == 'blocked')
-            return $this->sendBlocked();
-        else if ($post->privacy == 'private' && $post->user_id != auth()->user()->id)
+        if ($post->privacy == 'blocked') return $this->sendBlocked();
+        if ($post->privacy == 'private' && $post->user_id != auth()->user()->id)
             return $this->sendForbidden();
         // isLiked return a like if user had liked a post
         $isLikeCreated = $post->likes()
@@ -37,12 +38,15 @@ class LikeController extends Controller
             ->first();
         if (!$isLikeCreated) {
             //Nếu chưa like lần nào tiến hành tạo mới like
-            $this->createLike($post->id, $requestStatus, $type);
+            $isLikeCreated = $this->createLike($post->id, $requestStatus, $type);
         } else if ($isLikeCreated->status == $requestStatus) {
             // Nếu like status bằng với status mà request gửi lên, tiến hành unlike
-            return $this->like($isLikeCreated, 0, $type);
-        } else return $this->like($isLikeCreated, $requestStatus, $type);
+            $isLikeCreated = $this->like($isLikeCreated, 0, $type);
+        } else $isLikeCreated = $this->like($isLikeCreated, $requestStatus, $type);
         // Còn lại thì tiến hành chuyển đã like status về status request gửi lên
+        if ($isLikeCreated->status != 0 && $post->user->id != auth()->user()->id) {
+            $this->sendLikeNotificationToUser($isLikeCreated, $post);
+        }
         return $this->sendRespondSuccess($isLikeCreated, null);
     }
 
@@ -101,7 +105,7 @@ class LikeController extends Controller
         $like->likeable_id = $id;
         $like->status = $status;
         $like->save();
-        return $this->sendRespondSuccess($like, 'create like success with status like ' . $status);
+        return $like;
     }
 
     /**
@@ -117,7 +121,7 @@ class LikeController extends Controller
     {
         $like->status = $status;
         $like->save();
-        return $this->sendRespondSuccess($like, 'change like to ' . $status);
+        return $like;
     }
 
     /**
@@ -131,6 +135,29 @@ class LikeController extends Controller
     {
         $like->status = 0;
         $like->save();
-        return $this->sendRespondSuccess($like, $message);
+        return $like;
+    }
+
+    public function sendLikeNotificationToUser($like, $post)
+    {
+        $likes_count = $post->loadCount('liked');
+        foreach ($post->user->notifications()->where('type', 'App\Notifications\LikeNotification')->get() as $notification) {
+            if ($notification->data->like->likeable_type == 'App\Models\Post' && $notification->data->like->likeable_id == $post->id) {
+                $notification->data = [
+                    'username' => auth()->user()->name,
+                    'like' => $like,
+                    'likes_count' => $likes_count
+                ];
+                $notification->updated_at = Carbon::now();
+                $notification->read_at = null;
+                $notification->save();
+                return;
+            }
+        }
+        $notification = $post->user->notify(new LikeNotification([
+            'username' => auth()->user()->name,
+            'like' => $like,
+            'likes_count' => $likes_count
+        ]));
     }
 }
