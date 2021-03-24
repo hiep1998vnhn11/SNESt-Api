@@ -38,7 +38,7 @@ class UserController extends Controller
             'Not found User!',
             config('const.STATUS_CODE_NOT_FOUND')
         );
-        $user->friends = $user->friends()->take(config('constant.DEFAULT_PER_PAGE'));
+        $user->friends = $user->friends()->take(config('constant.DEFAULT_PER_PAGE'))->get();
         $user->loadCount('friends');
         $info = $user->info;
         $info->jobs;
@@ -61,7 +61,7 @@ class UserController extends Controller
             'Not found User!',
             config('const.STATUS_CODE_NOT_FOUND')
         );
-        $user->friends = $user->friends()->take(config('constant.DEFAULT_PER_PAGE'));
+        $user->friends = $user->friends()->take(config('constant.DEFAULT_PER_PAGE'))->get();
         $user->loadCount('friends');
         if ($user_url == auth()->user()->url) {
             $user->myRelation = null;
