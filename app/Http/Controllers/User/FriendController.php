@@ -186,5 +186,17 @@ class FriendController extends Controller
             'status' => 'accepted',
             'relationship' => $friendRelation
         ]));
+
+        foreach (auth()->user()->notifications()->where('type', 'App\Notifications\FriendNotification')->get() as $notification) {
+            if ($notification->data->relationship->friend_id == $friend->friend_id) {
+                $data = $notification->data;
+                $data->relationship = $friend;
+                $data->status = 'accepted';
+                $notification->data = $data;
+                $notification->save();
+                break;
+            }
+        }
+        return $this->sendRespondSuccess($friendRelation, 'Accepted');
     }
 }
