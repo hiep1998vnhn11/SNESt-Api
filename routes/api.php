@@ -19,8 +19,6 @@ use App\Http\Controllers\User\SearchController;
 
 use App\Http\Controllers\Notification\FriendController as NotificationFriendController;
 use App\Http\Controllers\OauthController;
-use App\Http\Controllers\User\RelationshipController;
-use Illuminate\Support\Testing\Fakes\NotificationFake;
 
 /*
 |--------------------------------------------------------------------------
@@ -83,12 +81,11 @@ Route::group([
             'prefix' => 'relationship',
             'middleware' => 'role:viewer'
         ], function () {
-            Route::get('friend/store', [RelationshipController::class, 'store']);
-            Route::get('requesting/store', [RelationshipController::class, 'storeRequesting']);
-            Route::post('user/{user}/friend', [RelationshipController::class, 'addFriend']);
-            Route::post('user/{user}/block', [RelationshipController::class, 'block']);
-            Route::post('user/{user}/unfriend', [RelationshipController::class, 'unFriend']);
-            Route::post('user/{user}/unblock', [RelationshipController::class, 'unBlock']);
+            Route::get('friend/store', [FriendController::class, 'store']);
+            Route::post('user/{user}/friend', [FriendController::class, 'addFriend']);
+            Route::post('user/{user}/block', [FriendController::class, 'block']);
+            Route::post('user/{user}/unfriend', [FriendController::class, 'unFriend']);
+            Route::post('user/{user}/unblock', [FriendController::class, 'unBlock']);
         });
         // Post
         Route::group([

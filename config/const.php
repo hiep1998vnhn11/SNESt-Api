@@ -1,6 +1,7 @@
 <?php
 return [
     'DEFAULT_PER_PAGE'              => 10,
+    'DEFAULT_FRIEND_PER_PAGE'       => 8,
     'DEFAULT_URL_LENGTH'            => 15,
 
     // response code

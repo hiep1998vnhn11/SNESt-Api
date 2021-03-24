@@ -4,6 +4,7 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\FriendRequest;
+use App\Http\Requests\StoreFriendRequest;
 use Illuminate\Http\Request;
 use App\Http\Services\FriendService;
 use App\Models\Friend;
@@ -113,5 +114,75 @@ class FriendController extends Controller
         $friend->status = 0;
         $friend->save();
         return $this->sendRespondSuccess($friend, 'Denied friend successfully');
+    }
+
+    public function store(Request $request)
+    {
+        $status = Arr::get($request->all(), 'type', null);
+        $relationships = auth()->user()->relationships();
+        if ($status) {
+            $relationships->where('status', strval($status));
+        }
+        $relationships->paginate(config('constant.DEFAULT_PER_PAGE'));
+        return $this->sendRespondSuccess($relationships, 'Store Relationships!');
+    }
+
+    public function addFriend(User $user)
+    {
+        $relation = auth()->user()->relationships()->where('friend_id', $user->id)->first();
+        if (!$relation) {
+            $relation = new Friend();
+            $relation->user_id = auth()->user()->id;
+            $relation->friend_id = $user->id;
+            $relation->status = config('constant.FRIEND_STATUS_PENDING');
+            $relation->save();
+
+            $friendRelation = new Friend();
+            $friendRelation->friend_id = auth()->user()->id;
+            $friendRelation->user_id = $user->id;
+            $friendRelation->status = config('constant.FRIEND_STATUS_PENDING');
+            $friendRelation->save();
+
+            $user->notify(new FriendNotification([
+                'username' => auth()->user()->name,
+                'image' => auth()->user()->profile_photo_path,
+                'relationship' => $friendRelation
+            ]));
+            return $this->sendRespondSuccess($friendRelation, 'Add friend success!');
+        }
+
+        if ($relation->status == config('constant.FRIEND_STATUS_FRIEND'))
+            return $this->sendRespondError($relation, 'Been friend!', config('constant.STATUS_CODE_BAD_REQUEST'));
+
+        $friendRelation = $user->relationships()->where('friend_id', auth()->user()->id)->first();
+        if (!$friendRelation) return $this->sendForbidden();
+
+        $relation->status = config('constant.FRIEND_STATUS_FRIEND');
+        $relation->save();
+        $friendRelation->status = config('constant.FRIEND_STATUS_FRIEND');
+        $friendRelation->save();
+        $isNotification = false;
+        foreach ($user->notifications()->where('type', 'App\Notifications\FriendNotification')->get() as $notification) {
+            if ($notification->data->relationship->friend_id == auth()->user()->id) {
+                $notification->data = [
+                    'username' => auth()->user()->name,
+                    'image' => auth()->user()->profile_photo_path,
+                    'relationships' => $friendRelation
+                ];
+                $notification->updated_at = Carbon::now();
+                $notification->read_at = null;
+                $notification->save();
+                $isNotification = true;
+                break;
+            }
+        }
+        if (!$isNotification) {
+            $user->notify(new FriendNotification([
+                'username' => auth()->user()->name,
+                'image' => auth()->user()->profile_photo_path,
+                'relationship' => $friendRelation
+            ]));
+        }
+        return $this->sendRespondSuccess($friendRelation, 'Add friend success!');
     }
 }
