@@ -55,29 +55,7 @@ class FriendController extends Controller
         }
     }
 
-    public function accept(Friend $friend)
-    {
-        // Forbidden of user
-        if ($friend->friend_id != auth()->user()->id) return $this->sendForbidden();
 
-        // fail!
-        if ($friend->status != 1 && $friend->blocked != 0)
-            return $this->sendRespondError($friend, 'Handle friend fail!', config('const.STATUS_CODE_UN_PROCESSABLE'));
-        $new_friend = new Friend();
-        $new_friend->user_id = $friend->friend_id;
-        $new_friend->friend_id = $friend->user_id;
-        $new_friend->status = 1;
-        $new_friend->blocked = 0;
-        $new_friend->save();
-
-        $noti = $friend->user->notify(new FriendNotification([
-            'id' => $new_friend->id,
-            'type' => 'accepted',
-            'status' => 'accepted',
-            'user' => auth()->user()
-        ]));
-        return $this->sendRespondSuccess($noti, 'Accept friend successfully!');
-    }
 
     public function denied(Friend $friend)
     {
@@ -180,9 +158,33 @@ class FriendController extends Controller
             $user->notify(new FriendNotification([
                 'username' => auth()->user()->name,
                 'image' => auth()->user()->profile_photo_path,
+                'status' => 'requesting',
                 'relationship' => $friendRelation
             ]));
         }
         return $this->sendRespondSuccess($friendRelation, 'Add friend success!');
+    }
+
+    public function accept(Friend $friend)
+    {
+        // Forbidden of user
+        if ($friend->user_id != auth()->user()->id) return $this->sendForbidden();
+
+        // fail!
+        if ($friend->status != config('constant.FRIEND_STATUS_PENDING'))
+            return $this->sendRespondError($friend, 'Accept Fail!', config('const.STATUS_CODE_UN_PROCESSABLE'));
+
+        $friendRelation = $friend->friend_id->relationships()->where('friend_id', auth()->user()->id)->first();
+        $friend->status = config('constant.FRIEND_STATUS_FRIEND');
+        $friend->save();
+        $friendRelation->status = config('constant.FRIEND_STATUS_FRIEND');
+        $friendRelation->save();
+
+        $friend->friend_user->notify(new FriendNotification([
+            'username' => auth()->user()->name,
+            'image' => auth()->user()->profile_photo_path,
+            'status' => 'accepted',
+            'relationship' => $friendRelation
+        ]));
     }
 }
