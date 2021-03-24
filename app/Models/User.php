@@ -100,9 +100,16 @@ class User extends Authenticatable implements JWTSubject, Searchable
         return $this->hasMany('App\Models\Friend', 'friend_id');
     }
 
-    public function friends()
+    public function relationships()
     {
         return $this->hasMany('App\Models\Friend');
+    }
+
+    public function friends()
+    {
+        return $this->hasMany('App\Models\Friend')
+            ->where('status', '1')
+            ->with('user_friend');
     }
 
     public function rooms()
