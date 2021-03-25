@@ -71,7 +71,7 @@ class PostController extends Controller
         $post->loadCount('comments');
         $post->likes;
         $post->likeStatus;
-        $post->loadCount('likes');
+        $post->loadCount('liked');
         return $this->sendRespondSuccess(
             $post,
             'Create post successfully!'

@@ -148,6 +148,7 @@ class LikeController extends Controller
         if ($notification) {
             $notification->data = [
                 'username' => auth()->user()->name,
+                'image' => auth()->user()->profile_photo_path,
                 'like' => $like,
                 'likes_count' => $likes_count,
                 'post_id' => $post->id
@@ -161,6 +162,7 @@ class LikeController extends Controller
             'username' => auth()->user()->name,
             'like' => $like,
             'post_id' => $post->id,
+            'image' => auth()->user()->profile_photo_path,
             'likes_count' => $likes_count
         ]));
     }

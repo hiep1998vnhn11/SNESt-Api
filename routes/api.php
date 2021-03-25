@@ -57,7 +57,7 @@ Route::group([
         Route::get('post/{post}/get_comment', [PostController::class, 'getCommentGuest']);
         Route::get('post/store', [PostController::class, 'store']);
         Route::get('search/identify', [GuestSearchController::class, 'searchUserForIdentify']);
-        Route::post('search/trending', [SearchController::class, 'trending']);
+        Route::get('search/trending', [SearchController::class, 'trending']);
     });
 
     Route::group([
@@ -73,8 +73,6 @@ Route::group([
         Route::post('check_url', [UserController::class, 'checkUrl']);
         Route::get('get_user', [UserController::class, 'getForAuth']);
         Route::get('{user}/get', [UserController::class, 'getInfo']);
-
-
         Route::post('friend/get', [FriendController::class, 'get']);
 
         Route::group([

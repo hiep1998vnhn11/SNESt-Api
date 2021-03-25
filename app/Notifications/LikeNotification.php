@@ -59,7 +59,8 @@ class LikeNotification extends Notification
             'username' => $this->data['username'],
             'like' => $this->data['like'],
             'likes_count' => $this->data['likes_count'],
-            'image' => $this->data['image']
+            'image' => $this->data['image'],
+            'post_id' => $this->data['post_id']
         ];
     }
 }

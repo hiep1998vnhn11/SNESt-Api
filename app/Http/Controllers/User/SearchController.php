@@ -49,7 +49,7 @@ class SearchController extends Controller
     public function trending()
     {
         $trendingCount = Redis::zcount('search_trending', '-inf', '+inf');
-        $start = $trendingCount - 10 <= 0 ? 0 : $trendingCount - 10;
+        $start = $trendingCount - 8 <= 0 ? 0 : $trendingCount - 8;
         $trending = Redis::zrange('search_trending', $start, -1, 'withscores');
         return $this->sendRespondSuccess($trending, 'Get trending successfully!');
     }

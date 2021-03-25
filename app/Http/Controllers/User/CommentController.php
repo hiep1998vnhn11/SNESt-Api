@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\CommentRequest;
 use App\Models\Comment;
 use App\Models\Post;
+use App\Notifications\CommentNotification;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -43,7 +44,6 @@ class CommentController extends Controller
         $comment->post_id = $post->id;
         $comment->user_id = auth()->user()->id;
         $comment->save();
-        $isNotification = false;
         $notification = $post->user->notifications()
             ->where('type', 'App\Notifications\CommentNotification')
             ->where('data->post_id', $post->id)
@@ -58,11 +58,11 @@ class CommentController extends Controller
             $notification->read_at = null;
             $notification->save();
         } else {
-            $post->user->notify([
+            $post->user->notify(new CommentNotification([
                 'post_id' => $post->id,
                 'username' => auth()->user()->name,
                 'image' => auth()->user()->profile_photo_path
-            ]);
+            ]));
         }
         return $this->sendRespondSuccess(
             $comment,
