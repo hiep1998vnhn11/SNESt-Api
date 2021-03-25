@@ -19,7 +19,6 @@ class CreateInfosTable extends Migration
             $table->enum('gender', ['male', 'female'])->default('male');
             $table->text('profile_background_path')->nullable();
             $table->date('birthday')->nullable();
-            $table->string('phone_number')->nullable();
             $table->string('live_at')->nullable();
             $table->string('from')->nullable();
             $table->text('link_to_social')->nullable();

@@ -83,6 +83,7 @@ Route::group([
         ], function () {
             Route::get('friend/store', [FriendController::class, 'store']);
             Route::post('friend/{friend}/accept', [FriendController::class, 'accept']);
+            Route::post('friend/{friend}/cancel', [FriendController::class, 'cancel']);
             Route::post('user/{user}/friend', [FriendController::class, 'addFriend']);
             Route::post('user/{user}/block', [FriendController::class, 'block']);
             Route::post('user/{user}/unfriend', [FriendController::class, 'unFriend']);
