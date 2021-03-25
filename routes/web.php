@@ -17,14 +17,13 @@ use App\Http\Controllers\Admin\AuthController;
 Route::get('/', function () {
     return view('welcome');
 });
-
+Route::view('/login', 'login')->middleware('guest:web')->name('login');
+Route::post('/login', [AuthController::class, 'login'])->middleware('guest:web')->name('login');
 Route::group([
-    'prefix' => 'admin'
+    'prefix' => 'admin',
+    'middleware' => 'role:admin|super-admin,web'
 ], function () {
-    Route::get('/login', function () {
-        return view('login');
-    })->middleware('guest')->name('admin-login');
-    Route::post('/login', [AuthController::class, 'login'])->name('admin-login');
-    Route::get('/dashboard', [AuthController::class, 'login'])->middleware('auth')->name('admin-dashboard');
+    Route::view('/dashboard', 'dashboard')->name('admin-dashboard');
+    Route::post('/logout', [AuthController::class, 'logout'])->name('admin-logout');
     Route::get('/test', [AuthController::class, 'test']);
 });

@@ -18,7 +18,6 @@ body {
     align-items: center;
     flex-wrap: wrap;
     min-height: 100%;
-    background: #232427;
 }
 
 .welcome-container {
