@@ -141,22 +141,26 @@ class LikeController extends Controller
     public function sendLikeNotificationToUser($like, $post)
     {
         $likes_count = $post->loadCount('liked');
-        foreach ($post->user->notifications()->where('type', 'App\Notifications\LikeNotification')->get() as $notification) {
-            if ($notification->data->like->likeable_type == 'App\Models\Post' && $notification->data->like->likeable_id == $post->id) {
-                $notification->data = [
-                    'username' => auth()->user()->name,
-                    'like' => $like,
-                    'likes_count' => $likes_count
-                ];
-                $notification->updated_at = Carbon::now();
-                $notification->read_at = null;
-                $notification->save();
-                return;
-            }
+        $notification = $post->user->notifications()
+            ->where('type', 'App\Notifications\LikeNotification')
+            ->where('data->post_id', $post->id)
+            ->first();
+        if ($notification) {
+            $notification->data = [
+                'username' => auth()->user()->name,
+                'like' => $like,
+                'likes_count' => $likes_count,
+                'post_id' => $post->id
+            ];
+            $notification->updated_at = Carbon::now();
+            $notification->read_at = null;
+            $notification->save();
+            return;
         }
         $notification = $post->user->notify(new LikeNotification([
             'username' => auth()->user()->name,
             'like' => $like,
+            'post_id' => $post->id,
             'likes_count' => $likes_count
         ]));
     }

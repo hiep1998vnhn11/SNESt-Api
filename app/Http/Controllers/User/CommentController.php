@@ -44,21 +44,20 @@ class CommentController extends Controller
         $comment->user_id = auth()->user()->id;
         $comment->save();
         $isNotification = false;
-        foreach ($post->user->notifications()->where('type', 'App\Notifications\CommentNotification')->get() as $notification) {
-            if ($notification->data->post_id == $post->id) {
-                $notification->data = [
-                    'post_id' => $post->id,
-                    'username' => auth()->user()->name,
-                    'image' => auth()->user()->profile_photo_path
-                ];
-                $notification->updated_at = Carbon::now();
-                $notification->read_at = null;
-                $notification->save();
-                $isNotification = true;
-                break;
-            }
-        }
-        if (!$isNotification) {
+        $notification = $post->user->notifications()
+            ->where('type', 'App\Notifications\CommentNotification')
+            ->where('data->post_id', $post->id)
+            ->first();
+        if ($notification) {
+            $notification->data = [
+                'post_id' => $post->id,
+                'username' => auth()->user()->name,
+                'image' => auth()->user()->profile_photo_path
+            ];
+            $notification->updated_at = Carbon::now();
+            $notification->read_at = null;
+            $notification->save();
+        } else {
             $post->user->notify([
                 'post_id' => $post->id,
                 'username' => auth()->user()->name,
