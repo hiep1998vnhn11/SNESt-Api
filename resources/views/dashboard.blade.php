@@ -1,6 +1,6 @@
 @extends('layouts.app')
-@section('title', 'Page Title')
-@section('sidebar')
+@section('title', 'Dashboard')
+@section('navbar')
     @parent
 @endsection
 
@@ -14,5 +14,7 @@
         <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
             @csrf
         </form>
+
+        <livewire:user />
     </div>
 @endsection

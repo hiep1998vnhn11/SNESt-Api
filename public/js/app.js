@@ -86,10 +86,21 @@
 /************************************************************************/
 /******/ ({
 
-/***/ "./resources/css/app.css":
-/*!*******************************!*\
-  !*** ./resources/css/app.css ***!
-  \*******************************/
+/***/ "./resources/js/app.js":
+/*!*****************************!*\
+  !*** ./resources/js/app.js ***!
+  \*****************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+
+
+/***/ }),
+
+/***/ "./resources/scss/app.scss":
+/*!*********************************!*\
+  !*** ./resources/scss/app.scss ***!
+  \*********************************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
@@ -98,14 +109,14 @@
 /***/ }),
 
 /***/ 0:
-/*!***********************************************************!*\
-  !*** multi ./resources/js/app.js ./resources/css/app.css ***!
-  \***********************************************************/
+/*!*************************************************************!*\
+  !*** multi ./resources/js/app.js ./resources/scss/app.scss ***!
+  \*************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-!(function webpackMissingModule() { var e = new Error("Cannot find module '/Users/hiepstan/Desktop/SNESt/server/resources/js/app.js'"); e.code = 'MODULE_NOT_FOUND'; throw e; }());
-module.exports = __webpack_require__(/*! /Users/hiepstan/Desktop/SNESt/server/resources/css/app.css */"./resources/css/app.css");
+__webpack_require__(/*! /Users/hiepstan/Desktop/SNESt/server/resources/js/app.js */"./resources/js/app.js");
+module.exports = __webpack_require__(/*! /Users/hiepstan/Desktop/SNESt/server/resources/scss/app.scss */"./resources/scss/app.scss");
 
 
 /***/ })

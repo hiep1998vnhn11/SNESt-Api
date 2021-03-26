@@ -1,7 +1,5 @@
 @extends('layouts.app')
-@section('sidebar')
-    @parent
-@endsection
+@section('title', 'Welcome')
 
 @section('content')
     <div class="welcome-container">
@@ -30,7 +28,7 @@
                         when an unknown printer took a galley of type and scrambled it to make a type
                         specimen book.
                     </p>
-                    <a href="{{ route('login') }}">
+                    <a href="{{ route('admin-login') }}">
                         {{ __('common.login') }}
                     </a>
                 </div>

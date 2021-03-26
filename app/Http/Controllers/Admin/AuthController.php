@@ -21,11 +21,10 @@ class AuthController extends Controller
         $credentials = $request->only('email', 'password');
         if (Auth::guard('web')->attempt($credentials)) {
             $request->session()->regenerate();
-            return redirect('admin/dashboard');
-        } else {
-            Session::flash('error', 'Email hoặc mật khẩu không đúng!');
-            return redirect('admin/login');
+            return redirect(route('admin-dashboard'));
         }
+        Session::flash('error', 'Email or password is wrong!');
+        return redirect(route('admin-login'));
     }
 
     /**
@@ -39,7 +38,7 @@ class AuthController extends Controller
         Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('/');
+        return redirect(route('admin-login'));
     }
 
     public function test()
