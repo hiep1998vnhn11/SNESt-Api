@@ -1,28 +1,57 @@
-<div class="h-screen overflow-hidden flex items-center justify-center" style="background: #edf2f7;">
-    <!-- This is an example component -->
-<div class="h-screen w-full flex flex-col justify-center items-center">
-	<div class='max-w-lg bg-white shadow-md rounded-lg overflow-hidden mx-auto'>
-		<div class="py-4 px-8 mt-3">
-			<div class="flex flex-col mb-8">
-				<h2 class="text-gray-700 font-semibold text-2xl tracking-wide mb-2">Why you should donate?</h2>
-				<p class="text-gray-500 text-base">With your donation we can reach great lenghts! We can achieve amazing things. We're a small team.</p>
-			</div>
-			<div class="bg-gray-100 rounded-lg">
-				<div class="py-4 px-4">
-					<div class="flex flex-col">
-						<h4 class="text-lg font-semibold mb-3">We're currently working on</h4>
-						<div class="flex flex-col text-sm text-gray-500">
-							<span class="mb-1">The next cryptocurrency</span>
-							<span class="mb-1">Amazing software!</span>
-							<span class="mb-1">Blockchain technology</span>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class="py-4">
-				<a href="#" class="block tracking-widest uppercase text-center shadow bg-indigo-600 hover:bg-indigo-700 focus:shadow-outline focus:outline-none text-white text-xs py-3 px-10 rounded">Go donate</a>
-			</div>
-		</div>
-	</div>
-</div>
-</div>
+  <div class="login-body">
+      <loading-component v-if="loading" />
+
+      <div class="login-card">
+          <loading-component v-if="facebook.loading && facebook.user" :text="`${$t('Welcome')} ${facebook.user}`" />
+          <loading-component v-if="google.loading && google.user" :text="`${$t('Welcome')} ${google.user.name}`" />
+          <h1>
+              {{ $t('Login') }}
+          </h1>
+          <v-container>
+              <v-form ref="form" v-model="valid" lazy-validation>
+                  <v-text-field class="login-input" v-model="email" :rules="emailRules" autocomplete="off"
+                      :label="$t('Email')" required color="rgba(255,255,255,0.5)" @keyup.enter="onLogin"></v-text-field>
+                  <v-text-field v-model="password" autocomplete="off" type="password" :rules="passwordRules"
+                      :label="$t('Password')" required @keyup.enter="onLogin"></v-text-field>
+              </v-form>
+              {{ $t('common.forgotPassword') }}
+          </v-container>
+          <div>
+              <v-btn color="primary" class="text-capitalize mb-3" block outlined rounded @click="onLogin">
+                  {{ $t('common.login') }}
+              </v-btn>
+              <auth-register class="mx-auto" />
+          </div>
+          <div class="mt-3">
+              <v-btn :loading="facebook.loggingIn" :disabled="facebook.loggingIn || !!facebook.user" icon text outlined
+                  x-large class="mr-1" @click="onLoginFacebook">
+                  <v-avatar size="50">
+                      <img src="~/assets/icons/facebook.png" />
+                  </v-avatar>
+              </v-btn>
+              <v-btn :loading="google.loggingIn" icon x-large class="mr-1" @click="onSignInGoogle">
+                  <v-avatar size="50">
+                      <img src="~/assets/icons/google-icon.webp" />
+                  </v-avatar>
+              </v-btn>
+          </div>
+          <v-btn v-if="facebook.user && facebook.accessToken" color="primary" class="text-capitalize mt-3" block
+              outlined rounded @click="onContinueFacebook">
+              <v-spacer />
+              {{ $t('ContinueWith') }} {{ facebook . user }}
+              <v-spacer />
+              <v-avatar size="35" class="mr-n4">
+                  <img :src="facebook.picture" />
+              </v-avatar>
+          </v-btn>
+          <v-btn v-if="google.user && google.id_token" color="primary" class="text-capitalize mt-3" block outlined
+              rounded @click="onContinueGoogle">
+              <v-spacer />
+              {{ $t('ContinueWith') }} {{ google . user . name }}
+              <v-spacer />
+              <v-avatar size="35" class="mr-n4">
+                  <img :src="google.user.profile_photo_path" />
+              </v-avatar>
+          </v-btn>
+      </div>
+  </div>

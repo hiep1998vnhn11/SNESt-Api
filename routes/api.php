@@ -77,7 +77,7 @@ Route::group([
 
         Route::group([
             'prefix' => 'relationship',
-            'middleware' => 'role:viewer'
+            'middleware' => 'role:viewer,admin'
         ], function () {
             Route::get('friend/store', [FriendController::class, 'store']);
             Route::post('friend/{friend}/accept', [FriendController::class, 'accept']);

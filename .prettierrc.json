@@ -1,0 +1,16 @@
+{
+	"trailingComma": "all",
+	"printWidth": 100,
+	"semi": false,
+	"arrowParens": "avoid",
+	"jsxBracketSameLine": true,
+	"htmlWhitespaceSensitivity": "strict",
+	"overrides": [
+		{
+			"files": ".prettierrc",
+			"options": {
+				"parser": "json"
+			}
+		}
+	]
+}

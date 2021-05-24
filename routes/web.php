@@ -17,7 +17,7 @@ use App\Http\Controllers\Admin\AuthController;
 Route::get('/', function () {
     return view('welcome');
 });
-Route::view('/login', 'login')->middleware('guest:web')->name('admin-login');
+Route::view('/login', 'login.index')->middleware('guest:web')->name('admin-login');
 Route::post('/login', [AuthController::class, 'login'])->middleware('guest:web')->name('admin-login');
 Route::group([
     'prefix' => 'admin',

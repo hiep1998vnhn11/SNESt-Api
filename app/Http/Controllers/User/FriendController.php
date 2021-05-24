@@ -4,7 +4,6 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\FriendRequest;
-use App\Http\Requests\StoreFriendRequest;
 use Illuminate\Http\Request;
 use App\Http\Services\FriendService;
 use App\Models\Friend;
@@ -108,18 +107,16 @@ class FriendController extends Controller
                 'username' => auth()->user()->name,
                 'image' => auth()->user()->profile_photo_path,
                 'relationship' => $relation,
+                'url' => auth()->user()->url,
                 'status' => 'requesting',
-
             ]));
             return $this->sendRespondSuccess($relation, 'Add friend success!');
         }
-
         if ($relation->status == config('const.FRIEND_STATUS_FRIEND'))
             return $this->sendRespondError($relation, 'Been friend!', config('const.STATUS_CODE_BAD_REQUEST'));
-
         $friendRelation = $user->relationships()->where('friend_id', auth()->user()->id)->first();
         if ($friendRelation && $friendRelation->status == config('const.FRIEND_STATUS_BLOCKED')) return $this->sendBlocked();
-        if ($friendRelation->status == config('const.FRIEND_STATUS_PENDING')) {
+        if ($friendRelation && $friendRelation->status == config('const.FRIEND_STATUS_PENDING')) {
             $friendRelation->status = config('const.FRIEND_STATUS_FRIEND');
             $friendRelation->save();
             $relation->status = config('FRIEND_STATUS_FRIEND');
@@ -136,6 +133,7 @@ class FriendController extends Controller
             $notification->data = [
                 'username' => auth()->user()->name,
                 'image' => auth()->user()->profile_photo_path,
+                'url' => auth()->user()->url,
                 'status' => 'requesting',
                 'relationship' => $relation
             ];
@@ -175,6 +173,7 @@ class FriendController extends Controller
             'username' => auth()->user()->name,
             'image' => auth()->user()->profile_photo_path,
             'status' => 'accepted',
+            'url' => auth()->user()->url,
             'relationship' => $relation
         ]));
         $notification = auth()->user()->notifications()
@@ -205,6 +204,7 @@ class FriendController extends Controller
             $notification->data = [
                 'username' => auth()->user()->name,
                 'image' => auth()->user()->image,
+                'url' => auth()->user()->url,
                 'relationship' => $friend,
                 'status' => 'canceled'
             ];
