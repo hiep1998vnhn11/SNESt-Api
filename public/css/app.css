@@ -1,9 +1,35 @@
+* {
+  box-sizing: inherit;
+}
+
+html {
+  font-size: 100%;
+  line-height: 1rem;
+  font-family: "Roboto", sans-serif;
+  box-sizing: border-box;
+}
+
 body {
   display: flex;
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
   min-height: 100%;
+}
+
+.grid {
+  width: 1200px;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.grid__full-width {
+  width: 100%;
+}
+
+.grid__row {
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .welcome-container {

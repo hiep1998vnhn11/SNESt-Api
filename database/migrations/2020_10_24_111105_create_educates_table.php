@@ -19,7 +19,6 @@ class CreateEducatesTable extends Migration
             $table->string('school')->nullable();
             $table->string('details');
             $table->boolean('status')->default(1);
-            $table->foreign('info_id')->references('id')->on('infos')->onDelete('cascade');
             $table->timestamps();
         });
     }

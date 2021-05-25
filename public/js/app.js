@@ -115,8 +115,8 @@
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(/*! /Users/hiepstan/Desktop/SNESt/server/resources/js/app.js */"./resources/js/app.js");
-module.exports = __webpack_require__(/*! /Users/hiepstan/Desktop/SNESt/server/resources/scss/app.scss */"./resources/scss/app.scss");
+__webpack_require__(/*! /Volumes/Storage/Workspace/SNESt/server/resources/js/app.js */"./resources/js/app.js");
+module.exports = __webpack_require__(/*! /Volumes/Storage/Workspace/SNESt/server/resources/scss/app.scss */"./resources/scss/app.scss");
 
 
 /***/ })

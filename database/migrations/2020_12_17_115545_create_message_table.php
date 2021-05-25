@@ -17,8 +17,6 @@ class CreateMessageTable extends Migration
             $table->id();
             $table->unsignedBigInteger('thresh_id');
             $table->unsignedBigInteger('user_id');
-            $table->foreign('thresh_id')->references('id')->on('threshes')->onDelete('cascade');
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->text('content');
             $table->softDeletes();
             $table->timestamps();

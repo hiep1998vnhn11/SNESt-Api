@@ -19,7 +19,6 @@ class CreateJobsTable extends Migration
             $table->boolean('status')->default(1);
             $table->string('workspace')->nullable();
             $table->string('details');
-            $table->foreign('info_id')->references('id')->on('infos')->onDelete('cascade');
             $table->timestamps();
         });
     }

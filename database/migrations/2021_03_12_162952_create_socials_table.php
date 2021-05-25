@@ -16,7 +16,6 @@ class CreateSocialsTable extends Migration
         Schema::create('socials', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->enum('provider_oauth', ['facebook', 'google'])->default('facebook');
             $table->string('provider_id')->nullable();
             $table->timestamps();
