@@ -53,12 +53,12 @@ class PostController extends Controller
         $post->save();
         if ($request->hasFile('files')) {
             $files = $request->file('files');
-            $uploadFolder = 'files/' . auth()->user()->url . '/' . Carbon::now()->format('Y-m-d');
+            $uploadFolder = 'public/files/' . auth()->user()->url . '/' . Carbon::now()->format('Y-m-d');
             foreach ($files as $file) {
                 $fileName = time() . '_' . $file->getClientOriginalName();
-                $image_photo_path = $file->storeAs($uploadFolder, $fileName, 's3');
-                Storage::disk('s3')->setVisibility($image_photo_path, 'public');
-                $path = Storage::disk('s3')->url($image_photo_path);
+                $image_photo_path = $file->storeAs($uploadFolder, $fileName);
+                Storage::disk('local')->setVisibility($image_photo_path, 'public');
+                $path = Storage::disk('local')->url($image_photo_path);
                 $image = new Image();
                 $image->imageable_type = 'App\Models\Post';
                 $image->imageable_id = $post->id;

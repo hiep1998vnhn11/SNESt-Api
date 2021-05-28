@@ -77,12 +77,12 @@ class UserController extends Controller
 
     public function uploadAvatar(ImageRequest $request)
     {
-        $uploadFolder = 'avatars/' . auth()->user()->url;
+        $uploadFolder = 'public/avatars/' . auth()->user()->url;
         $image = $request->file('image');
         $name = time() . '_' . $image->getClientOriginalName();
-        $image_photo_path = $image->storeAs($uploadFolder, $name, 's3');
-        Storage::disk('s3')->setVisibility($image_photo_path, 'public');
-        $path = Storage::disk('s3')->url($image_photo_path);
+        $image_photo_path = $image->storeAs($uploadFolder, $name);
+        Storage::disk('local')->setVisibility($image_photo_path, 'public');
+        $path = Storage::disk('local')->url($image_photo_path);
         $user = auth()->user();
         $user->profile_photo_path = $path;
         $user->save();
@@ -94,9 +94,9 @@ class UserController extends Controller
         $uploadFolder = 'backgrounds/' . auth()->user()->url;
         $image = $request->file('image');
         $name = time() . '_' . $image->getClientOriginalName();
-        $image_photo_path = $image->storeAs($uploadFolder, $name, 's3');
-        Storage::disk('s3')->setVisibility($image_photo_path, 'public');
-        $path = Storage::disk('s3')->url($image_photo_path);
+        $image_photo_path = $image->storeAs($uploadFolder, $name);
+        Storage::disk('local')->setVisibility($image_photo_path, 'public');
+        $path = Storage::disk('local')->url($image_photo_path);
         $info = auth()->user()->info;
         $info->profile_background_path = $path;
         $info->save();

@@ -54,7 +54,8 @@ class PermissionSeeder extends Seeder
 
         // create demo users
         $user = User::create([
-            'name' => 'hiep',
+            'first_name' => 'Hiệp',
+            'last_name' => 'Trần',
             'email' => 'hiep@gmail.com',
             'password' => bcrypt('123456'),
             'url' => 'hiep'
@@ -63,11 +64,11 @@ class PermissionSeeder extends Seeder
         Info::create([
             'user_id' => $user->id,
             'gender' => 'male',
-            'profile_background_path' => 'https://i.pinimg.com/originals/3b/8a/d2/3b8ad2c7b1be2caf24321c852103598a.jpg',
         ]);
 
         $user = User::create([
-            'name' => 'admin',
+            'first_name' => 'Hiệp',
+            'last_name' => 'Trần',
             'email' => 'admin@admin',
             'url' => 'admin',
             'password' => bcrypt('admin'),
@@ -76,11 +77,11 @@ class PermissionSeeder extends Seeder
         Info::create([
             'user_id' => $user->id,
             'gender' => 'male',
-            'profile_background_path' => 'https://i.pinimg.com/originals/3b/8a/d2/3b8ad2c7b1be2caf24321c852103598a.jpg',
         ]);
 
         $user = User::create([
-            'name' => 'super-admin',
+            'first_name' => 'Hiệp',
+            'last_name' => 'Trần',
             'email' => 'superadmin@admin',
             'url' => 'supper-admin',
             'password' => bcrypt('admin'),
@@ -89,12 +90,11 @@ class PermissionSeeder extends Seeder
         Info::create([
             'user_id' => $user->id,
             'gender' => 'male',
-            'profile_background_path' => 'https://i.pinimg.com/originals/3b/8a/d2/3b8ad2c7b1be2caf24321c852103598a.jpg',
         ]);
 
         $user = User::create([
-            'name' => 'blocked',
-            'email' => 'blocked@gmail.com',
+            'first_name' => 'Hiệp',
+            'last_name' => 'Trần',            'email' => 'blocked@gmail.com',
             'password' => bcrypt('123456'),
             'url' => 'blocked'
         ]);
@@ -102,7 +102,6 @@ class PermissionSeeder extends Seeder
         Info::create([
             'user_id' => $user->id,
             'gender' => 'male',
-            'profile_background_path' => 'https://i.pinimg.com/originals/3b/8a/d2/3b8ad2c7b1be2caf24321c852103598a.jpg',
         ]);
     }
 }

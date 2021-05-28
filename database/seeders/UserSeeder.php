@@ -21,20 +21,22 @@ class UserSeeder extends Seeder
         $faker = Factory::create();
         $viewer = Role::find(1);
         for ($i = 0; $i < 5000; $i++) {
+            $gender = rand(0, 1) ? 'male' : 'female';
             $user = User::create([
-                'name' => $faker->name,
+                'first_name' => $faker->firstName($gender),
+                'last_name' => $faker->lastName,
                 'email' => $faker->unique()->safeEmail,
                 'password' => bcrypt('123456'), // password
                 'phone_number' => $faker->phoneNumber,
                 'url' => $faker->uuid,
-                'locale' => rand(0, 1) ? 'vi' : 'en'
             ]);
             $user->assignRole($viewer);
             Info::insert([
                 'user_id' => $user->id,
-                'gender' => rand(0, 1) ? 'male' : 'female',
+                'gender' => $gender,
                 'birthday' => $faker->dateTimeBetween($startDate = '-45 years', $endDate = '-10 years', $timezone = null),
                 'live_at' => $faker->city,
+                'locale' => rand(0, 1) ? 'vi' : 'en',
                 'from' => $faker->country,
                 'show_live_at' => 1,
                 'show_from' => 1,
