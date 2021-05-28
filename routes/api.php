@@ -19,6 +19,8 @@ use App\Http\Controllers\User\SearchController;
 
 use App\Http\Controllers\Notification\FriendController as NotificationFriendController;
 use App\Http\Controllers\OauthController;
+use App\Http\Controllers\ServerController;
+use App\Http\Controllers\User\FollowController;
 
 /*
 |--------------------------------------------------------------------------
@@ -44,7 +46,7 @@ Route::group([
     Route::post('me', [AuthController::class, 'me']);
 });
 
-Route::get('test', [TestController::class, 'test']);
+Route::get('test', [ServerController::class, 'api']);
 
 Route::group([
     'prefix' => 'v1'
@@ -52,7 +54,7 @@ Route::group([
     Route::group([
         'prefix' => 'guest'
     ], function () {
-        Route::get('user/get', [UserController::class, 'getForGuest']);
+        Route::get('user/get', [UserController::class, 'get']);
         Route::get('post/{post}/get', [PostController::class, 'get']);
         Route::get('post/{post}/get_comment', [PostController::class, 'getCommentGuest']);
         Route::get('post/store', [PostController::class, 'store']);
@@ -71,13 +73,13 @@ Route::group([
         Route::post('update_profile', [UserController::class, 'update']);
         Route::post('remove_background', [UserController::class, 'removeBackground']);
         Route::post('check_url', [UserController::class, 'checkUrl']);
-        Route::get('get_user', [UserController::class, 'getForAuth']);
+        Route::get('get_user', [UserController::class, 'get']);
         Route::get('{user}/get', [UserController::class, 'getInfo']);
         Route::post('friend/get', [FriendController::class, 'get']);
 
         Route::group([
             'prefix' => 'relationship',
-            'middleware' => 'role:viewer,admin'
+            'middleware' => 'role:viewer|admin'
         ], function () {
             Route::get('friend/store', [FriendController::class, 'store']);
             Route::post('friend/{friend}/accept', [FriendController::class, 'accept']);
@@ -86,6 +88,16 @@ Route::group([
             Route::post('user/{user}/block', [FriendController::class, 'block']);
             Route::post('user/{user}/unfriend', [FriendController::class, 'unFriend']);
             Route::post('user/{user}/unblock', [FriendController::class, 'unBlock']);
+        });
+
+        //Follow
+        Route::group([
+            'prefix' => 'follow',
+            'middleware' => 'role:viewer|admin'
+        ], function () {
+            Route::get('/', [FollowController::class, 'index']);
+            Route::post('store', [FollowController::class, 'store']);
+            Route::get('', [FollowController::class, 'delete']);
         });
         // Post
         Route::group([

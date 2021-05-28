@@ -37,7 +37,7 @@ class Controller extends BaseController
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function sendRespondSuccess($data, $message)
+    public function sendRespondSuccess($data = [], $message = 'success')
     {
         return response()->json([
             'status'  => 'success',
@@ -54,7 +54,7 @@ class Controller extends BaseController
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function sendRespondError($data, $message, $code = 404)
+    public function sendRespondError($data = [], $message = 'error', $code = 404)
     {
         return response()->json([
             'status'  => 'error',
@@ -115,5 +115,14 @@ class Controller extends BaseController
     public function findUser($user_url)
     {
         return User::where('url', $user_url)->first();
+    }
+
+    public function sendUnvalid($errors = [])
+    {
+        return response()->json([
+            'errors' => $errors,
+            'message' => 'The given data was invalid.',
+            'current' => Carbon::now()->toDateTimeString(),
+        ], 422);
     }
 }

@@ -174,4 +174,14 @@ class User extends Authenticatable implements JWTSubject, Searchable
     {
         return $this->morphMany('App\Models\Like', 'likeable');
     }
+
+    public function follows()
+    {
+        return $this->hasMany('App\Models\Follow');
+    }
+
+    public function followeds()
+    {
+        return $this->hasMany('App\Models\Follow', 'followed_id');
+    }
 }

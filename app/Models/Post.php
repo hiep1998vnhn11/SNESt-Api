@@ -23,7 +23,7 @@ class Post extends Model implements Searchable
 
     public function user()
     {
-        return $this->belongsTo('App\Models\User')->select('id', 'url', 'profile_photo_path', 'name');
+        return $this->belongsTo('App\Models\User')->select('id', 'url', 'profile_photo_path', 'full_name');
     }
     public function comments()
     {

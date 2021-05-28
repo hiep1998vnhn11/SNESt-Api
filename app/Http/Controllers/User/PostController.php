@@ -47,6 +47,7 @@ class PostController extends Controller
         $post = new Post();
         $post->user_id = auth()->user()->id;
         $post->content = $request->content;
+        $post->uid = rand(100000000000, 99999999999999);
         if ($request->image_count) $post->image_count = $request->image_count;
         if ($request->privacy) $post->privacy = $request->privacy;
         else $post->privacy = 'public';
@@ -134,8 +135,9 @@ class PostController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function get(Post $post)
+    public function get(String $post)
     {
+        $post = Post::where('uid', $post)->firstOrFail();
         $post->user;
         $post->images;
         $post->loadCount('liked');
@@ -173,8 +175,9 @@ class PostController extends Controller
         return $this->sendRespondSuccess($comments, 'Get comment successfully!');
     }
 
-    public function getCommentGuest(Post $post)
+    public function getCommentGuest(String $post)
     {
+        $post = Post::where('uid', $post)->firstOrFail();
         $comments = $post->comments()->withCount('sub_comments')
             ->with('user')
             ->with('likes', function ($like) {

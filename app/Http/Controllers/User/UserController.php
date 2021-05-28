@@ -163,4 +163,22 @@ class UserController extends Controller
         }]);
         return $this->sendRespondSuccess($user, 'get Info successfully!');
     }
+
+    public function get(Request $request)
+    {
+        if (!isset($request->user_url)) return $this->sendUnvalid([
+            'user_url' => 'required!'
+        ]);
+        $user = $this->findUser($request->user_url);
+        if (!$user) return $this->sendRespondError();
+        $user->friends = $user->friends()->take(config('const.DEFAULT_PER_PAGE'))->get();
+        $user->loadCount(['friends', 'follows', 'followeds']);
+        $user->info;
+        $user->jobs;
+        $user->educate;
+        if (auth()->user()) {
+            $user->relation = auth()->user()->relationships()->where('friend_id', $user->id)->first();
+        }
+        return $this->sendRespondSuccess($user);
+    }
 }
