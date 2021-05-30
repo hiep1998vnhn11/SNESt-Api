@@ -63,16 +63,16 @@ class PostController extends Controller
                 $image = new Image();
                 $image->imageable_type = 'App\Models\Post';
                 $image->imageable_id = $post->id;
-                $image->path = $path;
+                $image->path = url($path);
                 $image->save();
             }
         }
         $post->images;
-        $post->user;
-        $post->loadCount('comments');
-        $post->likes;
-        $post->likeStatus;
-        $post->loadCount('liked');
+        $post->user = auth()->user();
+        $post->comments_count = 0;
+        $post->likes = [];
+        $post->likeStatus = null;
+        $post->likeds_count = 0;
         return $this->sendRespondSuccess(
             $post,
             'Create post successfully!'
@@ -143,36 +143,17 @@ class PostController extends Controller
         $post->loadCount('liked');
         $post->loadCount('comments');
         $post->likeStatus;
-        $post->comments = $post->comments()
-            ->withCount('sub_comments')
-            ->with('user')
-            ->with('likes', function ($like) {
-                $like->where('status', '>', 0);
-            })
-            ->with('sub_comments', function ($sub_comment) {
-                $sub_comment->with('user');
-            })
-            ->get();
-        return $this->sendRespondSuccess(
-            $post,
-            'Get Post successfully!'
-        );
+        return $this->sendRespondSuccess($post);
     }
-    public function getComment(Post $post)
+    public function getComment(String $post)
     {
+        $post = Post::where('uid', $post)->firstOrFail();
         $comments = $post->comments()->withCount('sub_comments')
             ->with('user')
             ->withCount('liked')
             ->with('likeStatus')
-            ->with('sub_comments', function ($sub_comment) {
-                $sub_comment->with('user')
-                    ->withCount('liked')
-                    ->with('likes', function ($like) {
-                        $like->where('status', '>', 0);
-                    });
-            })
             ->get();
-        return $this->sendRespondSuccess($comments, 'Get comment successfully!');
+        return $this->sendRespondSuccess($comments);
     }
 
     public function getCommentGuest(String $post)
@@ -206,7 +187,7 @@ class PostController extends Controller
         foreach ($files as $file) {
             $fileName = time() . '_' . $file->getClientOriginalName();
             $path =
-                env('APP_URL') . '/storage/' . $file->storeAs($uploadFolder, $fileName, 'public');
+                config('app.url') . '/storage/' . $file->storeAs($uploadFolder, $fileName, 'public');
             $paths = $paths . $path;
         }
         return $paths;

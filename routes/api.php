@@ -74,9 +74,10 @@ Route::group([
         Route::post('remove_background', [UserController::class, 'removeBackground']);
         Route::post('check_url', [UserController::class, 'checkUrl']);
         Route::get('get_user', [UserController::class, 'get']);
-        Route::get('{user}/get', [UserController::class, 'getInfo']);
+        Route::get('{url}/get_info', [UserController::class, 'getInfo']);
+        Route::get('{url}/get_post', [UserController::class, 'getPost']);
+        Route::get('{url}/get_friend', [UserController::class, 'getFriend']);
         Route::post('friend/get', [FriendController::class, 'get']);
-
         Route::group([
             'prefix' => 'relationship',
             'middleware' => 'role:viewer|admin'
@@ -138,6 +139,7 @@ Route::group([
         ], function () {
             Route::get('{user}/get', [RoomController::class, 'get']);
             Route::get('store', [RoomController::class, 'store']);
+            Route::get('get', [RoomController::class, 'index']);
             Route::get('{room}/message/get', [MessageController::class, 'getByRoom']);
             Route::post('{room}/message/send', [MessageController::class, 'sendByRoom']);
             Route::post('{room}/delete', [MessageController::class, 'deleteRoom']);

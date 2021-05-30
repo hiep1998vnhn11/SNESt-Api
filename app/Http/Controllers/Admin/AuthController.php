@@ -24,7 +24,7 @@ class AuthController extends Controller
             return redirect(route('admin-dashboard'));
         }
         Session::flash('error', 'Email or password is wrong!');
-        return redirect(route('admin-login'));
+        return redirect(route('/'));
     }
 
     /**
@@ -38,7 +38,7 @@ class AuthController extends Controller
         Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect(route('admin-login'));
+        return redirect(route('/'));
     }
 
     public function test()

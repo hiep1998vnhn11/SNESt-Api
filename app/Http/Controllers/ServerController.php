@@ -12,10 +12,10 @@ class ServerController extends Controller
 {
     public function index()
     {
-        foreach (Post::cursor() as $post) {
-            $post->uid = rand(100000000000, 99999999999999);
-            $post->save();
-        }
+        // foreach (Post::cursor() as $post) {
+        //     $post->uid = rand(100000000000, 99999999999999);
+        //     $post->save();
+        // }
         return view('welcome');
     }
 

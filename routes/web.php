@@ -3,7 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\ServerController;
-
+use App\Http\Controllers\User\PostController;
+use App\Http\Controllers\User\UserController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -16,6 +17,9 @@ use App\Http\Controllers\ServerController;
 */
 
 Route::get('/', [ServerController::class, 'index']);
+Route::get('test/{post}', [PostController::class, 'get']);
+Route::get('{url}/get_friend', [UserController::class, 'getFriend']);
+
 // Route::view('/login', 'login.index')->middleware('guest:web')->name('admin-login');
 // Route::post('/login', [AuthController::class, 'login'])->middleware('guest:web')->name('admin-login');
 // Route::group([

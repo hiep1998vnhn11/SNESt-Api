@@ -16,6 +16,6 @@ class Friend extends Model
 
     public function user_friend()
     {
-        return $this->belongsTo('App\Models\User', 'friend_id')->select(['id', 'name', 'profile_photo_path', 'url']);
+        return $this->belongsTo('App\Models\User', 'friend_id')->select(['id', 'full_name', 'profile_photo_path', 'url']);
     }
 }

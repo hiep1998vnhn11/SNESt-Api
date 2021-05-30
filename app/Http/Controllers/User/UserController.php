@@ -11,7 +11,10 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\ChangeInfoRequest;
 use App\Http\Requests\CheckUrlRequest;
+use App\Models\Friend;
+use App\Models\Post;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
@@ -153,14 +156,19 @@ class UserController extends Controller
         else return $this->sendRespondSuccess(null, 'Checked!');
     }
 
-    public function getInfo(User $user)
+    public function getInfo(String $url)
     {
-        $info = $user->info;
-        $info->jobs;
-        $info->educates;
-        $user->loadCount(['friends' => function ($query) {
-            $query->where('status', 1)->where('blocked', 0);
-        }]);
+        $user = User::where('url', $url)
+            ->select('id', 'url', 'full_name', 'profile_photo_path')
+            ->firstOrFail();
+        $user->loadCount([
+            'friends' => function ($query) {
+                $query->where('status', 1);
+            },
+            'follows', 'followeds'
+        ]);
+        $user->friend = auth()->user()->friends()->where('friend_id', $user->id)->first();
+        $user->follow = auth()->user()->follows()->where('followed_id', $user->id)->first();
         return $this->sendRespondSuccess($user, 'get Info successfully!');
     }
 
@@ -180,5 +188,46 @@ class UserController extends Controller
             $user->relation = auth()->user()->relationships()->where('friend_id', $user->id)->first();
         }
         return $this->sendRespondSuccess($user);
+    }
+
+    public function getPost(Request $request, String $url)
+    {
+        $user = User::where('url', $url)->firstOrFail();
+        $params = $request->all();
+        $limit = Arr::get($params, 'limit', config('const.DEFAULT_PER_PAGE'));
+        $posts = Post::where('user_id', $user->id)
+            ->withCount(['likes', 'comments'])
+            ->with(['images', 'likeStatus', 'user'])
+            ->paginate($limit);
+        return $this->sendRespondSuccess($posts);
+    }
+
+    public function getFriend(Request $request, String $url)
+    {
+        $user = User::where('url', $url)->firstOrFail();
+        $params = $request->all();
+        $limit = Arr::get($params, 'limit', config('const.DEFAULT_PER_PAGE'));
+        $searchKey = Arr::get($params, 'search_key', null);
+        $type = Arr::get($params, 'type', config('snest.friends.type.default'));
+        $types = config('snest.friends.types');
+        if (!isset($types[$type])) $type = $types['default'];
+        $friends = Friend::query()
+            ->where('friends.user_id', $user->id)
+            ->leftJoin('users as UF', 'friends.friend_id', 'UF.id');
+
+        $friends = $friends->where('friends.status', $types[$type]);
+        if ($types[$type] != 'all') {
+            $friends = $friends;
+        }
+        if ($searchKey) {
+            $friends = $friends->where(function ($query) use ($searchKey) {
+                $query->where('UF.full_name', 'like', '%' . $searchKey . '%')
+                    ->orWhere('UF.slug', 'like', '%' . $searchKey . '%')
+                    ->orWhere('UF.url', 'like', '%' . $searchKey . '%');
+            });
+        }
+        $friends = $friends->select('UF.*', 'friends.id as id')
+            ->paginate($limit);
+        return $this->sendRespondSuccess($friends);
     }
 }

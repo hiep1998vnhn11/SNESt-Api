@@ -8,6 +8,7 @@ use App\Models\Message;
 use App\Models\Room;
 use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Support\Arr;
 
 class RoomController extends Controller
 {
@@ -22,6 +23,13 @@ class RoomController extends Controller
      *
      * @return Response
      */
+
+    public function index(Request $request)
+    {
+        $params = $request->all();
+        $limit = Arr::get($params, 'limit', config('const.DEFAULT_PER_PAGE'));
+        $searchKey = Arr::get($params, 'search_key', null);
+    }
     public function get(User $user)
     {
         $room = auth()->user()->rooms()

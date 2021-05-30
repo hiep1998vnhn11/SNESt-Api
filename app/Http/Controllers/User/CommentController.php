@@ -101,7 +101,6 @@ class CommentController extends Controller
     {
         if ($this->checkAuthUser($comment->user_id))
             return $this->sendForbidden();
-
         if ($request->content)
             $comment->content = $request->content;
         if ($request->image_path)
@@ -115,9 +114,7 @@ class CommentController extends Controller
         $subComments = $comment->sub_comments()
             ->with('user')
             ->with('likeStatus')
-            ->with('likes', function ($like) {
-                $like->where('status', '>', 0);
-            })
+            ->withCount('likes')
             ->get();
         return $this->sendRespondSuccess($subComments, 'Get sub comment successfully!');
     }
