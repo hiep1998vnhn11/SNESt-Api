@@ -105,6 +105,7 @@ Route::group([
             'prefix' => 'post',
             'middleware' => 'role:viewer|admin'
         ], function () {
+            Route::get('/', [PostController::class, 'index']);
             Route::post('create', [PostController::class, 'create']);
             Route::post('{post}/delete', [PostController::class, 'delete']);
             Route::post('{post}/update', [PostController::class, 'update']);

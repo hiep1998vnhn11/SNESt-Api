@@ -10,6 +10,7 @@ use App\Http\Requests\StorePostRequest;
 use App\Models\Post;
 use Illuminate\Support\Arr;
 use App\Http\Services\PostService;
+use App\Models\Follow;
 use App\Models\Image;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
@@ -145,14 +146,15 @@ class PostController extends Controller
         $post->likeStatus;
         return $this->sendRespondSuccess($post);
     }
-    public function getComment(String $post)
+    public function getComment(Request $request, String $post)
     {
+        $limit = isset($request->limit) ? $request->limit : config('const.DEFAULT_PER_PAGE');
         $post = Post::where('uid', $post)->firstOrFail();
-        $comments = $post->comments()->withCount('sub_comments')
-            ->with('user')
-            ->withCount('liked')
-            ->with('likeStatus')
-            ->get();
+        $comments = $post->comments()
+            ->withCount(['sub_comments', 'liked'])
+            ->with(['user', 'likeStatus'])
+            ->orderBy('updated_at', 'desc')
+            ->paginate($limit);
         return $this->sendRespondSuccess($comments);
     }
 
@@ -191,5 +193,21 @@ class PostController extends Controller
             $paths = $paths . $path;
         }
         return $paths;
+    }
+
+    public function index(Request $request)
+    {
+        $params = $request->all();
+        $user = auth()->user();
+        $limit = isset($request->limit) ? $request->limit : config('const.DEFAULT_PERPAGE');
+        $followingList = $user->follows()
+            ->pluck('followed_id');
+        $followingList[] = $user->id;
+        $posts = Post::whereIn('user_id', $followingList)
+            ->withcount(['liked', 'comments'])
+            ->with(['images', 'user'])
+            ->orderBy('updated_at', 'desc')
+            ->paginate($limit);
+        return $this->sendRespondSuccess($posts);
     }
 }
