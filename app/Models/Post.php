@@ -6,11 +6,16 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Searchable\Searchable;
 use Spatie\Searchable\SearchResult;
+use Illuminate\Support\Facades\DB;
 
 class Post extends Model implements Searchable
 {
     use HasFactory;
     protected $table = 'posts';
+
+    protected $appends = [
+        'like_group'
+    ];
 
     public function getSearchResult(): SearchResult
     {
@@ -47,7 +52,30 @@ class Post extends Model implements Searchable
         return $this->morphOne('App\Models\Like', 'likeable')->where('user_id', auth()->user()->id);
     }
 
-    public function getLikeStatusGroupAttribute()
+    public function getContentAttribute($value)
     {
+        return nl2br($value);
+    }
+
+    public function getLikeGroupAttribute()
+    {
+        return Like::query()
+            ->where('likeable_type', 'App\Models\Post')
+            ->where('likeable_id', $this->id)
+            ->where('status', '>', 0)
+            ->select('status', DB::raw('COUNT(*) as counter'))
+            ->groupBy('status')
+            ->get();
+    }
+
+    public function groupAndCountStatus()
+    {
+        return Like::query()
+            ->where('likeable_type', 'App\Models\Post')
+            ->where('likeable_id', $this->id)
+            ->where('status', '>', 0)
+            ->select('status', DB::raw('COUNT(*) as counter'))
+            ->groupBy('status')
+            ->get();
     }
 }

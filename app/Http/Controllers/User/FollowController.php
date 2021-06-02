@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Services\FollowService;
+use App\Models\Follow;
 
 class FollowController extends Controller
 {
@@ -62,5 +64,25 @@ class FollowController extends Controller
         return $this->sendRespondSuccess([
             'full_name' => $user->full_name,
         ], 'success');
+    }
+
+    public function handleFollow(Request $request, String $url)
+    {
+        $status = isset($request->status) ? boolval($request->status) : false;
+        $user = User::where('url', $url)->firstOrFail();
+        $follow = auth()->user()->follows()
+            ->where('followed_id', $user->id)
+            ->first();
+        if (!$follow) {
+            $follow = Follow::create([
+                'user_id' => auth()->user()->id,
+                'followed_id' => $user->id,
+                'status' => $status
+            ]);
+        } else {
+            $follow->status = $status;
+            $follow->save();
+        }
+        return $this->sendRespondSuccess($follow);
     }
 }

@@ -174,6 +174,7 @@ class PostController extends Controller
             ->where('likes.status', '>', 0)
             ->leftJoin('users', 'users.id', 'likes.user_id')
             ->select('likes.*', 'users.full_name as user_name', 'users.profile_photo_path as user_profile_photo_path', 'users.url as user_url')
+            ->orderBy('updated_at', 'desc')
             ->offset($offset)
             ->limit($limit)
             ->get();
@@ -230,11 +231,14 @@ class PostController extends Controller
         $user = auth()->user();
         $limit = isset($request->limit) ? $request->limit : config('const.DEFAULT_PERPAGE');
         $followingList = $user->follows()
+            ->where('status', 1)
             ->pluck('followed_id');
         $followingList[] = $user->id;
         $posts = Post::whereIn('user_id', $followingList)
-            ->withcount(['liked', 'comments'])
-            ->with(['images', 'user', 'likeStatus'])
+            ->withcount('comments')
+            ->with(['images', 'likeStatus'])
+            ->leftJoin('users', 'users.id', 'user_id')
+            ->select('posts.*', 'users.full_name as user_name', 'users.profile_photo_path as user_profile_photo_path', 'users.url as user_url')
             ->orderBy('updated_at', 'desc')
             ->paginate($limit);
         return $this->sendRespondSuccess($posts);

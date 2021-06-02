@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Guest\TestController;
 use App\Http\Controllers\Guest\SearchController as GuestSearchController;
-
+use App\Http\Controllers\GuestController;
 use App\Http\Controllers\User\CommentController;
 use App\Http\Controllers\User\PostController;
 use App\Http\Controllers\User\LikeController;
@@ -54,7 +54,7 @@ Route::group([
     Route::group([
         'prefix' => 'guest'
     ], function () {
-        Route::get('user/get', [UserController::class, 'get']);
+        Route::get('user/{url}', [GuestController::class, 'getUser']);
         Route::get('post/{post}/get', [PostController::class, 'get']);
         Route::get('post/{post}/get_comment', [PostController::class, 'getCommentGuest']);
         Route::get('post/store', [PostController::class, 'store']);
@@ -77,6 +77,7 @@ Route::group([
         Route::get('{url}/get_info', [UserController::class, 'getInfo']);
         Route::get('{url}/get_post', [UserController::class, 'getPost']);
         Route::get('{url}/get_friend', [UserController::class, 'getFriend']);
+        Route::post('{url}/handle-follow', [FollowController::class, 'handleFollow']);
         Route::post('friend/get', [FriendController::class, 'get']);
         Route::group([
             'prefix' => 'relationship',

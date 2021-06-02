@@ -52,30 +52,10 @@ class UserController extends Controller
     public function getForAuth(GuestUserRequest $request)
     {
         $user_url = $request->user_url;
-        if (Str::contains($user_url, 'admin'))
-            return $this->sendRespondError(
-                null,
-                'Not found User!',
-                config('const.STATUS_CODE_NOT_FOUND')
-            );
         if ($user_url == auth()->user()->url) $user = auth()->user();
         else $user = $this->findUser($user_url);
-        if (!$user) return $this->sendRespondError(
-            null,
-            'Not found User!',
-            config('const.STATUS_CODE_NOT_FOUND')
-        );
-        $user->friends = $user->friends()->take(config('constant.DEFAULT_FRIEND_PER_PAGE'))->get();
-        $user->loadCount('friends');
-        if ($user_url == auth()->user()->url) {
-            $user->myRelation = null;
-        } else {
-            $myRelation = auth()->user()->relationships()->where('friend_id', $user->id)->first();
-            $user->myRelation = $myRelation;
-        }
+        if (!$user) return $this->sendRespondError();
         $info = $user->info;
-        $info->jobs;
-        $info->educates;
         return $this->sendRespondSuccess($user, 'Get User successfully!');
     }
 
@@ -173,22 +153,32 @@ class UserController extends Controller
         return $this->sendRespondSuccess($user, 'get Info successfully!');
     }
 
-    public function get(Request $request)
+    public function get(String  $url)
     {
-        if (!isset($request->user_url)) return $this->sendUnvalid([
-            'user_url' => 'required!'
-        ]);
-        $user = $this->findUser($request->user_url);
+        $user = User::where('url', $url)
+            ->leftJoin('infos', 'infos.user_id', 'id')
+            ->first();
         if (!$user) return $this->sendRespondError();
-        $user->friends = $user->friends()->take(config('const.DEFAULT_PER_PAGE'))->get();
         $user->loadCount(['friends', 'follows', 'followeds']);
-        $user->info;
-        $user->jobs;
-        $user->educate;
+        $friends = Friend::where('user_id', $user->id)
+            ->where('status', 1)
+            ->orderBy('updated_at', 'desc')
+            ->limit(config('const.DEFAULT_PER_PAGE'))
+            ->get();
         if (auth()->user()) {
-            $user->relation = auth()->user()->relationships()->where('friend_id', $user->id)->first();
+            $friendStatus = auth()->user()->friends()
+                ->where('friend_id', $user->id)
+                ->first();
+            return $this->sendRespondSuccess([
+                'user' => $user,
+                'friends' => $friends,
+                'friend_status' => $friendStatus
+            ]);
         }
-        return $this->sendRespondSuccess($user);
+        return $this->sendRespondSuccess([
+            'user' => $user,
+            'friends' => $friends,
+        ]);
     }
 
     public function getPost(Request $request, String $url)
