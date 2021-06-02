@@ -31,7 +31,7 @@ class Post extends Model implements Searchable
     }
     public function likes()
     {
-        return $this->morphMany('App\Models\Like', 'likeable')->orderBy('created_at', 'desc');
+        return $this->morphMany('App\Models\Like', 'likeable')->orderBy('updated_at', 'desc');
     }
     public function liked()
     {
@@ -45,5 +45,9 @@ class Post extends Model implements Searchable
     public function likeStatus()
     {
         return $this->morphOne('App\Models\Like', 'likeable')->where('user_id', auth()->user()->id);
+    }
+
+    public function getLikeStatusGroupAttribute()
+    {
     }
 }

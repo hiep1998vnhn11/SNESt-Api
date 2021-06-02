@@ -25,7 +25,7 @@ class LikeController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function handle_like(Post $post, HandleLikeRequest $request)
+    public function handleLike(Post $post, HandleLikeRequest $request)
     {
         $requestStatus = $request->status;
         $type = 'App\Models\Post';
@@ -50,7 +50,7 @@ class LikeController extends Controller
         return $this->sendRespondSuccess($isLikeCreated, null);
     }
 
-    public function handle_like_comment(Comment $comment, HandleLikeRequest $request)
+    public function handleLikeComment(Comment $comment, HandleLikeRequest $request)
     {
         $requestStatus = $request->status;
         $type = 'App\Models\Comment';

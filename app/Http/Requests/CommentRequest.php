@@ -25,6 +25,7 @@ class CommentRequest extends FormRequest
     {
         return [
             'content' => 'string',
+            'file.*' => 'file|max:20000'
         ];
     }
 }

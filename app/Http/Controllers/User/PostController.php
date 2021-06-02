@@ -12,6 +12,7 @@ use Illuminate\Support\Arr;
 use App\Http\Services\PostService;
 use App\Models\Follow;
 use App\Models\Image;
+use App\Models\Like;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 
@@ -149,13 +150,41 @@ class PostController extends Controller
     public function getComment(Request $request, String $post)
     {
         $limit = isset($request->limit) ? $request->limit : config('const.DEFAULT_PER_PAGE');
+        $offset = isset($request->offset) ? $request->offset : 0;
         $post = Post::where('uid', $post)->firstOrFail();
         $comments = $post->comments()
             ->withCount(['sub_comments', 'liked'])
             ->with(['user', 'likeStatus'])
             ->orderBy('updated_at', 'desc')
-            ->paginate($limit);
+            ->offset($offset)
+            ->limit($limit)
+            ->get();
         return $this->sendRespondSuccess($comments);
+    }
+
+    public function getLike(Request $request, String $post)
+    {
+        $limit = isset($request->limit) ? $request->limit : config('const.DEFAULT_PER_PAGE');
+        $offset = isset($request->offset) ? $request->offset : 0;
+        $post = Post::where('uid', $post)->firstOrFail();
+        $likeableType = 'App\Models\Post';
+        $likes = Like::query()
+            ->where('likes.likeable_type', $likeableType)
+            ->where('likes.likeable_id', $post->id)
+            ->where('likes.status', '>', 0)
+            ->leftJoin('users', 'users.id', 'likes.user_id')
+            ->select('likes.*', 'users.full_name as user_name', 'users.profile_photo_path as user_profile_photo_path', 'users.url as user_url')
+            ->offset($offset)
+            ->limit($limit)
+            ->get();
+        $likesCount = Like::query()
+            ->where('likes.likeable_type', $likeableType)
+            ->where('likes.likeable_id', $post->id)
+            ->count();
+        return $this->sendRespondSuccess([
+            'likes' => $likes,
+            'likes_count' => $likesCount
+        ]);
     }
 
     public function getCommentGuest(String $post)
@@ -205,7 +234,7 @@ class PostController extends Controller
         $followingList[] = $user->id;
         $posts = Post::whereIn('user_id', $followingList)
             ->withcount(['liked', 'comments'])
-            ->with(['images', 'user'])
+            ->with(['images', 'user', 'likeStatus'])
             ->orderBy('updated_at', 'desc')
             ->paginate($limit);
         return $this->sendRespondSuccess($posts);

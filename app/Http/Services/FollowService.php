@@ -31,21 +31,25 @@ class FollowService
         $userId = auth()->user()->id;
         $query = Follow::query()
             ->where('follows.user_id', $userId)
-            ->whereNull('deleted_at')
+            ->whereNull('follows.deleted_at')
             ->join('users', 'follows.followed_id', 'users.id')
             ->select(
                 'users.full_name',
                 'users.phone_number',
                 'users.url',
                 'users.profile_photo_path',
+                'follows.id'
             );
         if ($searchKey) {
             $query = $query->where(function ($q) use ($searchKey) {
                 $q->where('users.full_name', 'like', '%' . $searchKey . '%')
+                    ->orWhere('users.url', 'like', '%' . $searchKey . '%')
+                    ->orWhere('users.phone_number', 'like', '%' . $searchKey . '%')
                     ->orWhere('users.slug', 'like', '%' . $searchKey . '%');
             });
         }
-        $query->paginate($limit)->orderBy('updated_at', 'desc');
+        $query = $query->orderBy('follows.updated_at', 'desc')->paginate($limit);
+        return $query;
     }
 
     public function follow($userId)

@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\ChangeInfoRequest;
 use App\Http\Requests\CheckUrlRequest;
+use App\Models\Follow;
 use App\Models\Friend;
 use App\Models\Post;
 use Illuminate\Support\Arr;
@@ -223,11 +224,31 @@ class UserController extends Controller
             $friends = $friends->where(function ($query) use ($searchKey) {
                 $query->where('UF.full_name', 'like', '%' . $searchKey . '%')
                     ->orWhere('UF.slug', 'like', '%' . $searchKey . '%')
+                    ->orWhere('UF.phone_number', 'like', '%' . $searchKey . '%')
                     ->orWhere('UF.url', 'like', '%' . $searchKey . '%');
             });
         }
         $friends = $friends->select('UF.*', 'friends.id as id')
             ->paginate($limit);
         return $this->sendRespondSuccess($friends);
+    }
+
+    public function searchFollow(Request $request)
+    {
+        $params = $request->all();
+        $searchKey = Arr::get($params, 'search_key', null);
+        $limit = Arr::get($params, 'limit', config('const.DEFAULT_PER_PAGE'));
+        $users = Follow::where('user_id', auth()->user()->id)
+            ->leftJoin('users', 'follows.followed_id', 'users.id');
+        if ($searchKey) {
+            $users = $users->where(function ($query) use ($searchKey) {
+                $query->where('users.name', 'like', '%' . $searchKey . '%')
+                    ->orWhere('users.slug', 'like', '%' . $searchKey . '%')
+                    ->orWhere('users.url', 'like', '%' . $searchKey . '%')
+                    ->orWhere('users.phone_number', 'like', '%' . $searchKey . '%');
+            });
+        }
+        $users = $users->limit($limit)->get();
+        return $this->sendRespondSuccess($users);
     }
 }

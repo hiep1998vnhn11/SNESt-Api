@@ -98,7 +98,7 @@ Route::group([
         ], function () {
             Route::get('/', [FollowController::class, 'index']);
             Route::post('store', [FollowController::class, 'store']);
-            Route::get('', [FollowController::class, 'delete']);
+            Route::get('{follow}', [FollowController::class, 'delete']);
         });
         // Post
         Route::group([
@@ -111,9 +111,10 @@ Route::group([
             Route::post('{post}/update', [PostController::class, 'update']);
             Route::get('{post}/get', [PostController::class, 'get']);
             Route::get('store', [PostController::class, 'store']);
-            Route::post('{post}/handle_like', [LikeController::class, 'handle_like']);
+            Route::post('{post}/handle_like', [LikeController::class, 'handleLike']);
             Route::post('{post}/create_comment', [CommentController::class, 'create']);
             Route::get('{post}/get_comment', [PostController::class, 'getComment']);
+            Route::get('{post}/get_like', [PostController::class, 'getLike']);
             Route::post('upload', [PostController::class, 'uploadImage']);
 
             Route::group([
@@ -123,7 +124,7 @@ Route::group([
                 Route::post('{comment}/delete', [CommentController::class, 'delete']);
                 Route::post('{comment}/update', [CommentController::class, 'update']);
                 Route::get('{comment}/get_sub_comment', [CommentController::class, 'getSubComment']);
-                Route::post('{comment}/handle_like', [LikeController::class, 'handle_like_comment']);
+                Route::post('{comment}/handle_like', [LikeController::class, 'handleLikeComment']);
                 Route::group([
                     'prefix' => 'sub_comment',
                 ], function () {
