@@ -24,8 +24,7 @@ class FriendRequest extends FormRequest
     public function rules()
     {
         return [
-            'user_url' => 'required|min:1|max:255',
-            'relationship' => 'required'
+            'status' => 'required|numeric'
         ];
     }
 }

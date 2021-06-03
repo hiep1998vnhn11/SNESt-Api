@@ -21,37 +21,28 @@ class FriendController extends Controller
         $this->friendService = $friendService;
     }
 
-    public function handleFriend(FriendRequest $request, User $user)
+    public function addFriend(String $url)
     {
-        $relation = auth()->user()->friends()
+        $user = User::where('url', $url)->firstOrFail();
+        $relation = Friend::where('user_id', $user->id)
+            ->where('friend_id', auth()->user()->id)
+            ->first();
+        if ($relation && $relation->status === 3) return $this->sendForbidden();
+        $friend = Friend::where('user_id', auth()->user()->id)
             ->where('friend_id', $user->id)
             ->first();
-        $data = $this->friendService->handleFriend($request->all());
-        if (!$data) return $this->sendRespondError(null, 'handle failed!', config('const.STATUS_CODE_UN_PROCESSABLE'));
-        else {
-            $friend = User::findOrFail($data->friend_id);
-            $isNotification = false;
-            $noti = null;
-            foreach ($friend->notifications as $notification) {
-                if ($notification->data["id"] == $data->id) {
-                    $isNotification = true;
-                    $noti = $notification;
-                    break;
-                }
-            }
-            if (!$isNotification) {
-                $noti = $friend->notify(new FriendNotification([
-                    'id' => $data->id,
-                    'status' => 'pending',
-                    'user' => $data->user
-                ]));
-            } else {
-                $noti->updated_at = Carbon::now();
-                $noti->read_at = null;
-                $noti->save();
-            }
-            return $this->sendRespondSuccess($noti, 'Handle success!');
+        if ($friend && $friend->status == 1) return $this->sendForbidden();
+        if (!$friend) {
+            $friend = Friend::create([
+                'user_id' => auth()->user()->id,
+                'friend_id' => $user->id,
+                'status' => 2
+            ]);
+        } else {
+            $friend->status = 2;
+            $friend->save();
         }
+        return $this->sendRespondSuccess($friend, 'Handle success!');
     }
 
 
@@ -94,7 +85,7 @@ class FriendController extends Controller
         return $this->sendRespondSuccess($relationships, 'Store Relationships!');
     }
 
-    public function addFriend(User $user)
+    public function aaddFriend(User $user)
     {
         $relation = auth()->user()->relationships()->where('friend_id', $user->id)->first();
         if (!$relation) {
@@ -151,65 +142,126 @@ class FriendController extends Controller
         return $this->sendRespondSuccess($relation, 'Add friend success!');
     }
 
-    public function accept(Friend $friend, Request $request)
+    public function acceptFriend(String $url)
     {
-        // $friend này là của thằng gửi đến, phải check kỹ
-        // Forbidden of user
-        if ($friend->friend_id != auth()->user()->id) return $this->sendForbidden();
-        if ($friend->status != config('const.FRIEND_STATUS_PENDING'))
-            return $this->sendRespondError($friend, 'Accept Fail!', config('const.STATUS_CODE_UN_PROCESSABLE'));
-
-        $relation = auth()->user()->relationships()->where('friend_id', $friend->user_id)->first();
+        $user = User::where('url', $url)->firstOrFail();
+        $friend = Friend::where('user_id', $user->id)
+            ->where('friend_id', auth()->user()->id)
+            ->firstOrFail();
+        if ($friend->status !== 2) return $this->sendRespondError();
+        $relation = Friend::where('user_id', auth()->user()->id)
+            ->where('friend_id', $user->id)
+            ->first();
         if (!$relation) {
-            $relation = new Friend();
-            $relation->user_id = auth()->user()->id;
-            $relation->friend_id = $friend->user_id;
-            $relation->status = config('const.FRIEND_STATUS_FRIEND');
+            $relation = Friend::create([
+                'user_id' => auth()->user()->id,
+                'friend_id' => $user->id,
+                'status' => 1
+            ]);
+        } else {
+            $relation->status = 1;
             $relation->save();
         }
-        $friend->status = config('const.FRIEND_STATUS_FRIEND');
+        $friend->status = 1;
         $friend->save();
-        $friend->user->notify(new FriendNotification([
-            'username' => auth()->user()->name,
-            'image' => auth()->user()->profile_photo_path,
-            'status' => 'accepted',
-            'url' => auth()->user()->url,
-            'relationship' => $relation
-        ]));
-        $notification = auth()->user()->notifications()
-            ->where('type', 'App\Notifications\FriendNotification')
-            ->where('data->relationship->user_id', $friend->user_id)
-            ->first();
-        if ($notification) {
-            $data = $notification->data;
-            $data->relationship = $relation;
-            $data->status = 'accepted';
-            $notification->data = $data;
-            $notification->save();
-        }
+        // $friend->user->notify(new FriendNotification([
+        //     'username' => auth()->user()->name,
+        //     'image' => auth()->user()->profile_photo_path,
+        //     'status' => 'accepted',
+        //     'url' => auth()->user()->url,
+        //     'relationship' => $relation
+        // ]));
+        // $notification = auth()->user()->notifications()
+        //     ->where('type', 'App\Notifications\FriendNotification')
+        //     ->where('data->relationship->user_id', $friend->user_id)
+        //     ->first();
+        // if ($notification) {
+        //     $data = $notification->data;
+        //     $data->relationship = $relation;
+        //     $data->status = 'accepted';
+        //     $notification->data = $data;
+        //     $notification->save();
+        // }
         return $this->sendRespondSuccess($relation, 'Accepted');
     }
 
-    public function cancel(Friend $friend)
+    public function cancelFriend(string $url)
     {
-        if ($friend->user_id != auth()->user()->id) return $this->sendForbidden();
-        if ($friend->status != 0) return $this->sendRespondError($friend, 'Cancel Failed!', config('const.STATUS_CODE_UN_PROCESSABLE'));
-        $friend->status = config('const.FRIEND_STATUS_NONE');
-        $friend->save();
-        $notification = $friend->user_friend->notifications()
-            ->where('type', 'App\Notifications\FriendNotification')
-            ->where('data->relationship->user_id', auth()->user()->id)
+        $user = User::where('url', $url)->firstOrFail();
+        $friend =  $friend = Friend::where('user_id', $user->id)
+            ->where('friend_id', auth()->user()->id)
+            ->firstOrFail();
+        if ($friend->status !== 2) return $this->sendRespondError();
+        $relation = Friend::where('user_id', auth()->user()->id)
+            ->where('friend_id', $user->id)
             ->first();
-        if ($notification) {
-            $notification->data = [
-                'username' => auth()->user()->name,
-                'image' => auth()->user()->image,
-                'url' => auth()->user()->url,
-                'relationship' => $friend,
-                'status' => 'canceled'
-            ];
-            $notification->save();
+        if (!$relation) {
+            $relation = Friend::create([
+                'user_id' => auth()->user()->id,
+                'friend_id' => $user->id,
+                'status' => 0
+            ]);
+        } else {
+            $relation->status = 0;
+            $relation->save();
         }
+        $friend->status = 0;
+        $friend->save();
         return $this->sendRespondSuccess($friend, 'Cancel friend successfully');
+    }
+
+    public function cancelFriendRequest(String $url)
+    {
+        $user = User::where('url', $url)->firstOrFail();
+        $friend = Friend::where('user_id', auth()->user()->id)
+            ->where('friend_id', $user->id)
+            ->firstOrFail();
+        if ($friend->status !== 2) return $this->sendRespondError();
+        $friend->status = 0;
+        $friend->save();
+        return $this->sendRespondSuccess($friend, 'Handle success!');
+    }
+
+    public function blockFriend(String $url)
+    {
+        $user = User::where('url', $url)->firstOrFail();
+        $friend = Friend::where('user_id', auth()->user()->id)
+            ->where('friend_id', $user->id)
+            ->first();
+        if (!$friend) {
+            $friend = Friend::create([
+                'user_id' => auth()->user()->id,
+                'friend_id' => $user->id,
+                'status' => 3
+            ]);
+        } else {
+            $friend->status = 3;
+            $friend->save();
+        }
+        $relation = Friend::where('user_id', $user->id)
+            ->where('friend_id', auth()->user()->id)
+            ->first();
+        if ($relation && ($relation->status == 1 || $relation->status == 2)) {
+            $relation->status == 0;
+            $relation->save();
+        }
+        return $this->sendRespondSuccess($friend, 'Handle success!');
+    }
+
+    public function unfriend(String $url)
+    {
+        $user = User::where('url', $url)->firstOrFail();
+        $friend = Friend::where('user_id', auth()->user()->id)
+            ->where('friend_id', $user->id)
+            ->firstOrFail();
+        $relation = Friend::where('user_id', $user->id)
+            ->where('friend_id', auth()->user()->id)
+            ->firstOrFail();
+        if ($friend->status !== 1 || $relation->status !== 1) return $this->sendForbidden();
+        $friend->status = 0;
+        $friend->save();
+        $relation->status = 0;
+        $relation->save();
+        return $this->sendRespondSuccess($friend, 'Handle success!');
     }
 }

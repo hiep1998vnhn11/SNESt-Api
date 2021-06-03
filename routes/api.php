@@ -79,6 +79,13 @@ Route::group([
         Route::get('{url}/get_friend', [UserController::class, 'getFriend']);
         Route::post('{url}/handle-follow', [FollowController::class, 'handleFollow']);
         Route::post('friend/get', [FriendController::class, 'get']);
+        Route::post('{url}/add-friend', [FriendController::class, 'addFriend']);
+        Route::post('{url}/accept-friend', [FriendController::class, 'acceptFriend']);
+        Route::post('{url}/cancel-friend', [FriendController::class, 'cancelFriend']);
+        Route::post('{url}/cancel-friend-request', [FriendController::class, 'cancelFriendRequest']);
+        Route::post('{url}/block-friend', [FriendController::class, 'blockFriend']);
+        Route::post('{url}/unfriend', [FriendController::class, 'unfriend']);
+
         Route::group([
             'prefix' => 'relationship',
             'middleware' => 'role:viewer|admin'

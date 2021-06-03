@@ -9,6 +9,11 @@ class Friend extends Model
 {
     use HasFactory;
     protected $table = 'friends';
+
+    protected $fillable = [
+        'user_id', 'friend_id', 'status'
+    ];
+
     public function user()
     {
         return $this->belongsTo('App\Models\User')->select(['id', 'name', 'profile_photo_path', 'url']);

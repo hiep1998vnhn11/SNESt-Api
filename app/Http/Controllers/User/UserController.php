@@ -133,8 +133,9 @@ class UserController extends Controller
 
     public function checkUrl(CheckUrlRequest $request)
     {
-        if ($request->url) return $this->sendRespondSuccess($request->url, 'Checked!');
-        else return $this->sendRespondSuccess(null, 'Checked!');
+        $user = User::where('url', $request->url)->first();
+        if ($user) return $this->sendRespondError();
+        return $this->sendRespondSuccess();
     }
 
     public function getInfo(String $url)
@@ -166,7 +167,7 @@ class UserController extends Controller
             ->limit(config('const.DEFAULT_PER_PAGE'))
             ->get();
         if (auth()->user()) {
-            $friendStatus = auth()->user()->friends()
+            $friendStatus = Friend::where('user_id', auth()->user()->id)
                 ->where('friend_id', $user->id)
                 ->first();
             return $this->sendRespondSuccess([
