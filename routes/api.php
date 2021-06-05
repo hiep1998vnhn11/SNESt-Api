@@ -99,6 +99,16 @@ Route::group([
             Route::post('user/{user}/unblock', [FriendController::class, 'unBlock']);
         });
 
+        Route::group([
+            'prefix' => 'message',
+            'middleware' => 'role:viewer|admin'
+        ], function () {
+            Route::post('private-chat', [MessageController::class, 'privateMessage']);
+            Route::get('private-chat/{id}', [MessageController::class, 'privateMessageGet']);
+            Route::get('room/{room}', [MessageController::class, 'getMessageByRoom']);
+            Route::get('user/{url}', [MessageController::class, 'getRoomByUrl']);
+        });
+
         //Follow
         Route::group([
             'prefix' => 'follow',

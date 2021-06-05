@@ -18,7 +18,6 @@ class CreateParticipantsTable extends Migration
             $table->unsignedBigInteger('thresh_id');
             $table->unsignedBigInteger('user_id');
             $table->timestamp('last_read_at')->nullable();
-            $table->softDeletes();
             $table->timestamps();
         });
     }

@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 use App\Models\Post;
 use App\Models\Like;
 use Illuminate\Support\Facades\DB;
+use App\Models\Thresh;
 
 class ServerController extends Controller
 {
@@ -29,8 +30,11 @@ class ServerController extends Controller
 
     public function api()
     {
-        $post = Post::findOrFail(10005);
-        $post->countStatus = $post->groupAndCountStatus(1);
-        return $this->sendRespondSuccess($post);
+        $room = Thresh::where('threshes.type', 2)
+            ->leftJoin('participants', 'participants.thresh_id', 'threshes.id')
+            ->select('threshes.id')
+            ->groupBy('threshes.id')
+            ->get();
+        return ($room);
     }
 }

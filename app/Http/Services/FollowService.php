@@ -31,7 +31,7 @@ class FollowService
         $userId = auth()->user()->id;
         $query = Follow::query()
             ->where('follows.user_id', $userId)
-            ->whereNull('follows.deleted_at')
+            ->where('follows.status', 1)
             ->join('users', 'follows.followed_id', 'users.id')
             ->select(
                 'users.full_name',

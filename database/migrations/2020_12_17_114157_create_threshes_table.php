@@ -15,8 +15,7 @@ class CreateThreshesTable extends Migration
     {
         Schema::create('threshes', function (Blueprint $table) {
             $table->id();
-            $table->enum('type', ['private', 'with', 'team'])->default('with');
-            $table->softDeletes();
+            $table->tinyInteger('type')->default(1);
             $table->timestamps();
         });
     }

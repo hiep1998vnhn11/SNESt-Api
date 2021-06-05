@@ -9,26 +9,12 @@ use App\Models\Post;
 use App\Models\Comment;
 use App\Models\Like;
 use App\Models\Message;
+use App\Models\Participant;
 use App\Models\Room;
+use App\Models\Thresh;
 
 class MessageService
 {
-    /**
-     * Create a new room
-     * 
-     *  @param User $user_id $with_id
-     *
-     * @return Room
-     */
-    private function createRoom($user_id, $with_id)
-    {
-        $room = new Room();
-        $room->user_id = $user_id;
-        $room->with_id = $with_id;
-        $room->save();
-        return $room;
-    }
-
     /**
      * Create a new message
      * 
@@ -129,5 +115,45 @@ class MessageService
         $message = $this->createMessage($room->id, $user->id, $content);
         $this->createMessage($room_with->id, $user->id, $content, $message->id);
         return $message;
+    }
+
+    public function getPrivateMessage($roomId, $params)
+    {
+        $limit = Arr::get($params, 'limit', config('const.DEFAULT_PER_PAGE'));
+        $offset = Arr::get($params, 'offset', 0);
+        $messages = Message::where('thresh_id', $roomId)
+            ->orderBy('created_at', 'desc')
+            ->offset($offset)
+            ->limit($limit)
+            ->get();
+        return $messages;
+    }
+
+    public function getPrivateRoom()
+    {
+        $room = Thresh::where('threshes.type', 1)
+            ->leftJoin('participants', 'participants.thresh_id', 'threshes.id')
+            ->where('participants.user_id', auth()->user()->id)
+            ->select('threshes.id', 'threshes.type', 'participants.user_id')
+            ->first();
+        if (!$room) {
+            $room = Thresh::create([
+                'type' => 1
+            ]);
+            Participant::create([
+                'user_id' => auth()->user()->id,
+                'thresh_id' => $room->id
+            ]);
+        }
+        return $room;
+    }
+
+    public function getRoom($user)
+    {
+        $room = Thresh::where('threshes.type', 2)
+            ->leftJoin('participants', 'participants.thresh_id', 'threshes.id')
+
+            ->get();
+        return $room;
     }
 }

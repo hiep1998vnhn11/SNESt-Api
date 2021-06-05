@@ -9,11 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Message extends Model
 {
     use HasFactory;
-    use SoftDeletes;
-
-    protected $dates = ['deleted_at'];
     protected $table = 'messages';
-
     public function user()
     {
         return $this->belongsTo('App\Models\User')->select('id', 'url', 'profile_photo_path', 'name');
