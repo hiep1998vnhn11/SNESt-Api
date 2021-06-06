@@ -158,19 +158,7 @@ Route::group([
             'prefix' => 'room',
             'middleware' => 'role:viewer|admin'
         ], function () {
-            Route::get('{user}/get', [RoomController::class, 'get']);
-            Route::get('store', [RoomController::class, 'store']);
-            Route::get('get', [RoomController::class, 'index']);
-            Route::get('{room}/message/get', [MessageController::class, 'getByRoom']);
-            Route::post('{room}/message/send', [MessageController::class, 'sendByRoom']);
-            Route::post('{room}/delete', [MessageController::class, 'deleteRoom']);
-            Route::post('{user}/create', [RoomController::class, 'create']);
-            Route::group([
-                'prefix' => 'message',
-            ], function () {
-                Route::post('{message}/delete', [MessageController::class, 'delete']);
-                Route::post('{message}/remove', [MessageController::class, 'remove']);
-            });
+            Route::get('/', [RoomController::class, 'index']);
         });
 
         Route::group([

@@ -194,6 +194,9 @@ class MessageController extends Controller
                 'user_id' => auth()->user()->id,
                 'thresh_id' => $thresh->id
             ]);
+        } else {
+            $thresh->updated_at = Carbon::now();
+            $thresh->save();
         }
         $message = new Message();
         $message->thresh_id = $thresh->id;
@@ -222,7 +225,7 @@ class MessageController extends Controller
             ->where('threshes.id', $room)
             ->leftJoin('participants', 'participants.thresh_id', 'threshes.id')
             ->where('participants.user_id', auth()->user()->id)
-            ->select('threshes.id', 'threshes.type', 'participants.user_id')
+            ->select('threshes.id', 'threshes.type', 'participants.user_id', 'threshes.updated_at')
             ->first();
         if (!$currentParticipant) return $this->sendForbidden();
         $message = new Message();
@@ -241,6 +244,8 @@ class MessageController extends Controller
             $message->media_name = $file->getClientOriginalName();
         }
         $message->save();
+        $currentParticipant->updated_at = Carbon::now();
+        $currentParticipant->save();
         return $this->sendRespondSuccess($message);
     }
 
@@ -321,5 +326,12 @@ class MessageController extends Controller
             'room' => $room,
             'participant' => $user
         ]);
+    }
+
+    public function getRoom(Request $request)
+    {
+        $params = $request->all();
+        $rooms = $this->messageService->getRoom($params);
+        return $this->sendRespondSuccess($rooms);
     }
 }

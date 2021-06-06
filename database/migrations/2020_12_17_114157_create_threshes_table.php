@@ -16,6 +16,7 @@ class CreateThreshesTable extends Migration
         Schema::create('threshes', function (Blueprint $table) {
             $table->id();
             $table->tinyInteger('type')->default(1);
+            $table->string('name', 255)->nullable();
             $table->timestamps();
         });
     }

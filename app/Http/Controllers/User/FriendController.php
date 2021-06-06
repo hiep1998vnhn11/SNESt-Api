@@ -42,10 +42,9 @@ class FriendController extends Controller
             $friend->status = 2;
             $friend->save();
         }
+        $this->sendFriendNotificationToUser(auth()->user(), $user);
         return $this->sendRespondSuccess($friend, 'Handle success!');
     }
-
-
 
     public function denied(Friend $friend)
     {
@@ -263,5 +262,25 @@ class FriendController extends Controller
         $relation->status = 0;
         $relation->save();
         return $this->sendRespondSuccess($friend, 'Handle success!');
+    }
+
+    public function sendFriendNotificationToUser($userRequest, $user, $type = 'requesting')
+    {
+        $notification = $user->notifications()
+            ->where('type', 'App\Notifications\FriendNotification')
+            ->where('data->user_url', $userRequest->url)
+            ->where('data->type', $type)
+            ->first();
+        if ($notification) {
+            $notification->updated_at = Carbon::now();
+            $notification->read_at = null;
+            $notification->save();
+            return;
+        }
+        $notification = $user->notify(new FriendNotification([
+            'username' => $userRequest->full_name,
+            'user_url' => $userRequest->url,
+            'type' => $type
+        ]));
     }
 }

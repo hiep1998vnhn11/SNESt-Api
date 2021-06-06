@@ -55,6 +55,10 @@ class FriendNotification extends Notification
      */
     public function toArray($notifiable)
     {
-        return $this->data;
+        return [
+            'username' => $this->data['username'],
+            'user_url' => $this->data['user_url'],
+            'type' => $this->data['type']
+        ];
     }
 }

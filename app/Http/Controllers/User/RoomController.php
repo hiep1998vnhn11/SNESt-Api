@@ -9,6 +9,7 @@ use App\Models\Room;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 
 class RoomController extends Controller
 {
@@ -16,66 +17,55 @@ class RoomController extends Controller
     {
         $this->middleware('auth:api');
     }
-    /**
-     * Get all room of auth()->user()
-     * 
-     * @method GET
-     *
-     * @return Response
-     */
 
     public function index(Request $request)
     {
         $params = $request->all();
         $limit = Arr::get($params, 'limit', config('const.DEFAULT_PER_PAGE'));
+        $offset = Arr::get($params, 'offset', 0);
         $searchKey = Arr::get($params, 'search_key', null);
-    }
-    public function get(User $user)
-    {
-        $room = auth()->user()->rooms()
-            ->where('with_id', $user->id)
-            ->first();
-        if ($room) {
-            $room->user_with;
-            $room->user_with->onlineStatus = $room->user_with->isOnline();
+        $userId = auth()->user()->id;
+        $conditionFirst = "";
+        $conditionSecond = "";
+        if ($searchKey) {
+            $conditionFirst = "AND (users.full_name LIKE '%{$searchKey}%' OR users.slug LIKE '%{$searchKey}%')";
+            $conditionSecond = "AND (thresh.name LIKE '%{$searchKey}%')";
         }
-        return $this->sendRespondSuccess($room, 'Get Room by user Successfully!');
+        $sql = "SELECT thresh.id, thresh.type, users.profile_photo_path AS photo, pt.user_id, users.url, users.full_name,
+                thresh.updated_at, thresh.name
+            FROM (SELECT t.type, t.id, t.updated_at, t.name
+                FROM threshes t
+                LEFT JOIN participants p
+                    ON p.thresh_id = t.id
+                WHERE p.user_id = {$userId}
+                ORDER BY t.updated_at DESC
+                LIMIT :limitQuery
+                OFFSET :offsetQuery
+            ) thresh
+            LEFT JOIN participants pt
+                ON pt.thresh_id = thresh.id
+            LEFT JOIN users
+                ON users.id = pt.user_id
+            WHERE (thresh.type = 2) AND (pt.user_id <> {$userId}) {$conditionFirst}
+            OR (thresh.type = 1) AND (pt.user_id = {$userId}) {$conditionFirst}
+            OR (thresh.type = 3) AND (pt.user_id = {$userId}) {$conditionSecond}
+        ";
+        $result = DB::select($sql, [
+            'limitQuery' => $limit,
+            'offsetQuery' => $offset
+        ]);
+        return $this->sendRespondSuccess($result);
+        $type = isset($request->type) ? $request->type : null;
+        if ($type) $rooms = $this->getGroup($limit, $offset);
+        else $rooms = $this->getRoom($limit, $offset);
+        return $this->sendRespondSuccess($rooms);
     }
 
-    public function store()
+    private function getGroup($limit = 10, $offset = 0, $search_key = null)
     {
-        $rooms = auth()->user()->rooms;
-        foreach ($rooms as $room) {
-            $room->user_with;
-            $room->user_with->onlineStatus = $room->user_with->isOnline();
-        }
-        return $this->sendRespondSuccess($rooms, 'Successfully!');
     }
 
-    public function create(User $user, MessageRoomRequest $request)
+    private function getRoom($limit = 10, $offset = 0)
     {
-        $isCurrent = auth()->user()->id === $user->id;
-        $room_user = new Room();
-        $room_user->user_id = auth()->user()->id;
-        $room_user->with_id = $user->id;
-        $room_user->save();
-        $message = new Message();
-        $message->room_id = $room_user->id;
-        $message->user_id = auth()->user()->id;
-        $message->content = $request->content;
-        $message->save();
-
-        if ($isCurrent) {
-            $room_with = new Room();
-            $room_with->user_id = $user->id;
-            $room_with->with_id = auth()->user()->id;
-            $room_with->save();
-            $message = new Message();
-            $message->room_id = $room_with->id;
-            $message->user_id = auth()->user()->id;
-            $message->content = $request->content;
-            $message->save();
-        }
-        return $this->sendRespondSuccess($room_user, 'Create new room and send message successfully!');
     }
 }
