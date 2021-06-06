@@ -12,6 +12,7 @@ use App\Models\Message;
 use App\Models\Participant;
 use App\Models\Room;
 use App\Models\Thresh;
+use Illuminate\Support\Facades\DB;
 
 class MessageService
 {
@@ -129,6 +130,18 @@ class MessageService
         return $messages;
     }
 
+    public function getMessage($roomId, $params)
+    {
+        $limit = Arr::get($params, 'limit', config('const.DEFAULT_PER_PAGE'));
+        $offset = Arr::get($params, 'offset', 0);
+        $messages = Message::where('thresh_id', $roomId)
+            ->orderBy('created_at', 'desc')
+            ->offset($offset)
+            ->limit($limit)
+            ->get();
+        return $messages;
+    }
+
     public function getPrivateRoom()
     {
         $room = Thresh::where('threshes.type', 1)
@@ -150,10 +163,38 @@ class MessageService
 
     public function getRoom($user)
     {
-        $room = Thresh::where('threshes.type', 2)
-            ->leftJoin('participants', 'participants.thresh_id', 'threshes.id')
-
-            ->get();
+        $sql = "SELECT t.id, t.type, count(p.user_id) AS participants_count
+            FROM `threshes` t
+            LEFT JOIN `participants` p
+                ON p.thresh_id = t.id
+            WHERE p.user_id IN (:user_first, :user_second)
+            GROUP BY t.id, t.type
+            HAVING count(p.user_id) = 2
+            LIMIT 1
+        ";
+        $result = DB::select($sql, [
+            'user_first' => auth()->user()->id,
+            'user_second' => $user->id
+        ]);
+        if ($result) return $result[0];
+        $room = Room::create([
+            'type' => 1
+        ]);
+        Thresh::insert([
+            [
+                'user_id' => auth()->user()->id,
+                'thresh_id' => $room->id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now()
+            ],
+            [
+                'user_id' => auth()->user()->id,
+                'thresh_id' => $room->id,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now()
+            ],
+        ]);
+        $room->participants_count = 2;
         return $room;
     }
 }

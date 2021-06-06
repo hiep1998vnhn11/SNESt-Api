@@ -16,7 +16,7 @@ use App\Http\Controllers\User\RoomController;
 use App\Http\Controllers\User\UserController;
 use App\Http\Controllers\User\ThreshController;
 use App\Http\Controllers\User\SearchController;
-
+use App\Http\Controllers\User\NotificationController;
 use App\Http\Controllers\Notification\FriendController as NotificationFriendController;
 use App\Http\Controllers\OauthController;
 use App\Http\Controllers\ServerController;
@@ -104,6 +104,7 @@ Route::group([
             'middleware' => 'role:viewer|admin'
         ], function () {
             Route::post('private-chat', [MessageController::class, 'privateMessage']);
+            Route::post('chat/{room}', [MessageController::class, 'messageChat']);
             Route::get('private-chat/{id}', [MessageController::class, 'privateMessageGet']);
             Route::get('room/{room}', [MessageController::class, 'getMessageByRoom']);
             Route::get('user/{url}', [MessageController::class, 'getRoomByUrl']);
@@ -206,10 +207,10 @@ Route::group([
             'middleware' => 'role:viewer'
         ], function () {
             Route::post('create', [NotificationFriendController::class, 'create']);
-            Route::post('read', [NotificationFriendController::class, 'read']);
+            Route::get('read', [NotificationFriendController::class, 'read']);
             Route::delete('delete', [NotificationFriendController::class, 'delete']);
-            Route::post('get', [NotificationFriendController::class, 'get']);
-            Route::post('number_unread', [NotificationFriendController::class, 'numberUnread']);
+            Route::get('get', [NotificationController::class, 'index']);
+            Route::get('number_unread', [NotificationController::class, 'numberUnread']);
         });
 
         Route::group([

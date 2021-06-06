@@ -214,6 +214,36 @@ class MessageController extends Controller
         return $this->sendRespondSuccess($message);
     }
 
+    public function messageChat(MessagePrivateRequest $request, $room)
+    {
+        if (!isset($request->content) && !$request->hasFile('file'))
+            return $this->sendUnvalid();
+        $currentParticipant = Thresh::query()
+            ->where('threshes.id', $room)
+            ->leftJoin('participants', 'participants.thresh_id', 'threshes.id')
+            ->where('participants.user_id', auth()->user()->id)
+            ->select('threshes.id', 'threshes.type', 'participants.user_id')
+            ->first();
+        if (!$currentParticipant) return $this->sendForbidden();
+        $message = new Message();
+        $message->thresh_id = $currentParticipant->id;
+        $message->user_id = auth()->user()->id;
+        if ($request->content) $message->content = $request->content;
+        if ($request->hasFile('file')) {
+            $uploadFolder = 'public/files/messages/' . $currentParticipant->id;
+            $file = $request->file('file');
+            $name = time() . '_' . $file->getClientOriginalName();
+            $type = $file->getClientOriginalExtension();
+            $file_path = $file->storeAs($uploadFolder, $name);
+            $path = Storage::disk('local')->url($file_path);
+            $message->media_type = $type;
+            $message->media = config('app.url') .  $path;
+            $message->media_name = $file->getClientOriginalName();
+        }
+        $message->save();
+        return $this->sendRespondSuccess($message);
+    }
+
     public function privateMessageGet(Request $request, $id)
     {
         $thresh = Thresh::where('threshes.id', $id)
@@ -243,10 +273,14 @@ class MessageController extends Controller
             return $this->sendRespondSuccess($this->messageService->getPrivateMessage($room->id, $params));
         }
         if ($room->type === 2) {
-            return $this->messageService->getMessage($room->id, $params);
+            $currentParticipant = Participant::where('thresh_id', $room->id)
+                ->where('user_id', auth()->user()->id)
+                ->first();
+            if (!$currentParticipant) return $this->sendForbidden();
+            return $this->sendRespondSuccess($this->messageService->getMessage($room->id, $params));
         }
         if ($room->type === 3) {
-            return $this->messageService->getGroupMessage($room->id, $params);
+            return $this->sendRespondSuccess($this->messageService->getGroupMessage($room->id, $params));
         }
         return $this->sendRespondError();
     }
@@ -278,9 +312,14 @@ class MessageController extends Controller
     {
         if ($url === auth()->user()->url) $room = $this->messageService->getPrivateRoom();
         else {
-            $user = User::where('url', $url)->firstOrFail();
+            $user = User::where('url', $url)
+                ->select('id', 'profile_photo_path', 'url', 'full_name')
+                ->firstOrFail();
             $room = $this->messageService->getRoom($user);
         }
-        return $this->sendRespondSuccess($room);
+        return $this->sendRespondSuccess([
+            'room' => $room,
+            'participant' => $user
+        ]);
     }
 }

@@ -30,11 +30,22 @@ class ServerController extends Controller
 
     public function api()
     {
-        $room = Thresh::where('threshes.type', 2)
-            ->leftJoin('participants', 'participants.thresh_id', 'threshes.id')
-            ->select('threshes.id')
-            ->groupBy('threshes.id')
-            ->get();
-        return ($room);
+        // $room = Thresh::where('threshes.type', 2)
+        //     ->leftJoin('participants', 'participants.thresh_id', 'threshes.id')
+        //     ->select('threshes.id')
+        //     ->groupBy('threshes.id')
+        //     ->get();
+        $sql = "SELECT t.id, t.type, count(p.user_id) AS participants_count
+            FROM `threshes` t
+            LEFT JOIN `participants` p
+                ON p.thresh_id = t.id
+            WHERE t.type = 2
+            AND p.user_id IN (1, 7)
+            GROUP BY t.id, t.type
+            HAVING count(p.user_id) = 2
+            LIMIT 1
+        ";
+        $query = DB::select($sql);
+        return $query;
     }
 }

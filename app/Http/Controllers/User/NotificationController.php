@@ -12,17 +12,7 @@ class NotificationController extends Controller
     {
         $this->middleware('auth:api');
     }
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        //
-    }
-
-    /**
+    /*
      * Show the form for creating a new resource.
      *
      * @return \Illuminate\Http\Response
@@ -39,17 +29,21 @@ class NotificationController extends Controller
      * @return \Illuminate\Http\Response
      */
 
-    public function store()
+    public function index()
     {
         $unread = auth()->user()->unreadNotifications;
-        $notifications = auth()->user()->notifications()->orderBy('read_at', 'desc')->paginate(20);
+        $notifications = auth()->user()
+            ->notifications()
+            ->orderBy('read_at', 'desc')
+            ->limit(20)
+            ->get();
         $unread->markAsRead();
         return $this->sendRespondSuccess($notifications, 'Notifications');
     }
 
     public function numberUnread()
     {
-        $unread = auth()->user()->loadCount('unreadNotifications');
+        $unread = auth()->user()->unreadNotifications()->count();
         return $this->sendRespondSuccess($unread, 'Amount of unread notifications');
     }
 

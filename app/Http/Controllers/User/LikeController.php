@@ -138,20 +138,24 @@ class LikeController extends Controller
         return $like;
     }
 
-    public function sendLikeNotificationToUser($like, $post)
+    public function sendLikeNotificationToUser($post)
     {
-        $likes_count = $post->loadCount('liked');
+        $likes_count = Like::where('likeable_type', 'App\Models\Post')
+            ->where('likeable_id', $post->id)
+            ->where('status', '>', 0)
+            ->count();
         $notification = $post->user->notifications()
             ->where('type', 'App\Notifications\LikeNotification')
-            ->where('data->post_id', $post->id)
+            ->where('data->type', 'post')
+            ->where('data->id', $post->id)
             ->first();
         if ($notification) {
             $notification->data = [
-                'username' => auth()->user()->name,
+                'username' => auth()->user()->full_name,
                 'image' => auth()->user()->profile_photo_path,
-                'like' => $like,
                 'likes_count' => $likes_count,
-                'post_id' => $post->id
+                'type' => 'post',
+                'id' => $post->id
             ];
             $notification->updated_at = Carbon::now();
             $notification->read_at = null;
@@ -159,9 +163,9 @@ class LikeController extends Controller
             return;
         }
         $notification = $post->user->notify(new LikeNotification([
-            'username' => auth()->user()->name,
-            'like' => $like,
-            'post_id' => $post->id,
+            'username' => auth()->user()->full_name,
+            'type' => 'post',
+            'id' => $post->id,
             'image' => auth()->user()->profile_photo_path,
             'likes_count' => $likes_count
         ]));
