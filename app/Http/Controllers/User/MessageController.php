@@ -315,8 +315,10 @@ class MessageController extends Controller
 
     public function getRoomByUrl(String $url)
     {
-        if ($url === auth()->user()->url) $room = $this->messageService->getPrivateRoom();
-        else {
+        if ($url === auth()->user()->url) {
+            $room = $this->messageService->getPrivateRoom();
+            $user = auth()->user();
+        } else {
             $user = User::where('url', $url)
                 ->select('id', 'profile_photo_path', 'url', 'full_name')
                 ->firstOrFail();

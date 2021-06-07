@@ -44,26 +44,7 @@ class CommentController extends Controller
         $comment->post_id = $post->id;
         $comment->user_id = auth()->user()->id;
         $comment->save();
-        $notification = $post->user->notifications()
-            ->where('type', 'App\Notifications\CommentNotification')
-            ->where('data->post_id', $post->id)
-            ->first();
-        if ($notification) {
-            $notification->data = [
-                'post_id' => $post->id,
-                'username' => auth()->user()->name,
-                'image' => auth()->user()->profile_photo_path
-            ];
-            $notification->updated_at = Carbon::now();
-            $notification->read_at = null;
-            $notification->save();
-        } else {
-            $post->user->notify(new CommentNotification([
-                'post_id' => $post->id,
-                'username' => auth()->user()->name,
-                'image' => auth()->user()->profile_photo_path
-            ]));
-        }
+        $this->sendCommentNotificationToUser($post);
         return $this->sendRespondSuccess(
             $comment,
             'Create comment successfully!'
@@ -128,5 +109,32 @@ class CommentController extends Controller
             })
             ->get();
         return $this->sendRespondSuccess($subComments, 'Get sub comment successfully!');
+    }
+
+    private function sendCommentNotificationToUser($post)
+    {
+        $notification = $post->user->notifications()
+            ->where('type', 'App\Notifications\CommentNotification')
+            ->where('data->type', 'post')
+            ->where('data->id', $post->uid)
+            ->first();
+        if ($notification) {
+            $notification->data = [
+                'username' => auth()->user()->full_name,
+                'image' => auth()->user()->profile_photo_path,
+                'type' => 'post',
+                'id' => $post->uid
+            ];
+            $notification->updated_at = Carbon::now();
+            $notification->read_at = null;
+            $notification->save();
+            return;
+        }
+        $notification = $post->user->notify(new CommentNotification([
+            'username' => auth()->user()->full_name,
+            'type' => 'post',
+            'id' => $post->uid,
+            'image' => auth()->user()->profile_photo_path,
+        ]));
     }
 }

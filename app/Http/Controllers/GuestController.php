@@ -40,8 +40,12 @@ class GuestController extends Controller
             ->limit(config('const.DEFAULT_PER_PAGE'))
             ->get();
         if (auth()->user()) {
-            $friendStatus = auth()->user()->friends()
+            $friendStatus = Friend::where('user_id', auth()->user()->id)
                 ->where('friend_id', $user->id)
+                ->first();
+            $friendRequest = Friend::where('user_id', $user->id)
+                ->where('friend_id', auth()->user()->id)
+                ->where('status', '2')
                 ->first();
             $followStatus = auth()->user()->follows()
                 ->where('followed_id', $user->id)
@@ -50,7 +54,8 @@ class GuestController extends Controller
                 'user' => $user,
                 'friends' => $friends,
                 'friend_status' => $friendStatus,
-                'follow_status' => $followStatus
+                'follow_status' => $followStatus,
+                'friend_request' => $friendRequest
             ]);
         }
         return $this->sendRespondSuccess([

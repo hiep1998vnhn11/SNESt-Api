@@ -147,7 +147,7 @@ class LikeController extends Controller
         $notification = $post->user->notifications()
             ->where('type', 'App\Notifications\LikeNotification')
             ->where('data->type', 'post')
-            ->where('data->id', $post->id)
+            ->where('data->id', $post->uid)
             ->first();
         if ($notification) {
             $notification->data = [
@@ -155,7 +155,7 @@ class LikeController extends Controller
                 'image' => auth()->user()->profile_photo_path,
                 'likes_count' => $likes_count,
                 'type' => 'post',
-                'id' => $post->id
+                'id' => $post->uid
             ];
             $notification->updated_at = Carbon::now();
             $notification->read_at = null;
@@ -165,7 +165,7 @@ class LikeController extends Controller
         $notification = $post->user->notify(new LikeNotification([
             'username' => auth()->user()->full_name,
             'type' => 'post',
-            'id' => $post->id,
+            'id' => $post->uid,
             'image' => auth()->user()->profile_photo_path,
             'likes_count' => $likes_count
         ]));

@@ -163,24 +163,7 @@ class FriendController extends Controller
         }
         $friend->status = 1;
         $friend->save();
-        // $friend->user->notify(new FriendNotification([
-        //     'username' => auth()->user()->name,
-        //     'image' => auth()->user()->profile_photo_path,
-        //     'status' => 'accepted',
-        //     'url' => auth()->user()->url,
-        //     'relationship' => $relation
-        // ]));
-        // $notification = auth()->user()->notifications()
-        //     ->where('type', 'App\Notifications\FriendNotification')
-        //     ->where('data->relationship->user_id', $friend->user_id)
-        //     ->first();
-        // if ($notification) {
-        //     $data = $notification->data;
-        //     $data->relationship = $relation;
-        //     $data->status = 'accepted';
-        //     $notification->data = $data;
-        //     $notification->save();
-        // }
+        $this->sendFriendNotificationToUser(auth()->user(), $user, 'accepted');
         return $this->sendRespondSuccess($relation, 'Accepted');
     }
 
