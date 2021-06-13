@@ -45,7 +45,7 @@ class LikeController extends Controller
         } else $isLikeCreated = $this->like($isLikeCreated, $requestStatus, $type);
         // Còn lại thì tiến hành chuyển đã like status về status request gửi lên
         if ($isLikeCreated->status != 0 && $post->user->id != auth()->user()->id) {
-            $this->sendLikeNotificationToUser($isLikeCreated, $post);
+            $this->sendLikeNotificationToUser($post);
         }
         return $this->sendRespondSuccess($isLikeCreated, null);
     }
@@ -60,12 +60,15 @@ class LikeController extends Controller
             ->first();
         if (!$isLikeCreated) {
             //Nếu chưa like lần nào tiến hành tạo mới like
-            $this->createLike($comment->id, $requestStatus, $type);
+            $isLikeCreated = $this->createLike($comment->id, $requestStatus, $type);
         } else if ($isLikeCreated->status == $requestStatus) {
             // Nếu like status bằng với status mà request gửi lên, tiến hành unlike
-            return $this->like($isLikeCreated, 0);
-        } else return $this->like($isLikeCreated, $requestStatus);
+            $isLikeCreated = $this->like($isLikeCreated, 0, $type);
+        } else $isLikeCreated = $this->like($isLikeCreated, $requestStatus, $type);
         // Còn lại thì tiến hành chuyển đã like status về status request gửi lên
+        // if ($isLikeCreated->status != 0 && $comment->user->id != auth()->user()->id) {
+        //     $this->sendLikeNotificationToUser($comment);
+        // }
         return $this->sendRespondSuccess($isLikeCreated, null);
     }
 
@@ -79,12 +82,15 @@ class LikeController extends Controller
             ->first();
         if (!$isLikeCreated) {
             //Nếu chưa like lần nào tiến hành tạo mới like
-            $this->createLike($sub_comment->id, $requestStatus, $type);
+            $isLikeCreated = $this->createLike($sub_comment->id, $requestStatus, $type);
         } else if ($isLikeCreated->status == $requestStatus) {
             // Nếu like status bằng với status mà request gửi lên, tiến hành unlike
-            return $this->like($isLikeCreated, 0);
-        } else return $this->like($isLikeCreated, $requestStatus);
+            $isLikeCreated = $this->like($isLikeCreated, 0, $type);
+        } else $isLikeCreated = $this->like($isLikeCreated, $requestStatus, $type);
         // Còn lại thì tiến hành chuyển đã like status về status request gửi lên
+        // if ($isLikeCreated->status != 0 && $sub_comment->user->id != auth()->user()->id) {
+        //     $this->sendLikeNotificationToUser($sub_comment);
+        // }
         return $this->sendRespondSuccess($isLikeCreated, null);
     }
 

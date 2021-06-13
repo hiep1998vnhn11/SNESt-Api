@@ -56,9 +56,10 @@ class SubCommentNotification extends Notification
     public function toArray($notifiable)
     {
         return [
+            'post_id' => $this->data['post_id'],
+            'comment_id' => $this->data['comment_id'],
             'username' => $this->data['username'],
-            'image' => $this->data['image'],
-            'comment_id' => $this->data['comment_id']
+            'image' => $this->data['image']
         ];
     }
 }

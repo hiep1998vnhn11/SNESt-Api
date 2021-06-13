@@ -12,67 +12,35 @@ use App\Models\Like;
 use App\Models\Participant;
 use Illuminate\Support\Facades\DB;
 use App\Models\Thresh;
+use ElephantIO\Client;
+use ElephantIO\Engine\SocketIO\Version0X;
 
 class ServerController extends Controller
 {
     public function index(Request $request)
     {
         $params = $request->all();
-        $user = auth()->user();
+        $user = User::findOrFail(1);
         $limit = isset($request->limit) ? $request->limit : config('const.DEFAULT_PERPAGE');
-        $followingList = Follow::where('user_id', 1)->pluck('followed_id');
-        $followingList[] = 1;
+        $followingList = $user->follows()
+            ->where('status', 1)
+            ->pluck('followed_id');
+        $followingList[] = $user->id;
         $posts = Post::whereIn('user_id', $followingList)
-            ->withcount(['liked', 'comments'])
-            ->with('images')
+            ->withCount('comments')
+            ->with(['images'])
+            ->leftJoin('users', 'users.id', 'user_id')
+            ->select('posts.*', 'users.full_name as user_name', 'users.profile_photo_path as user_profile_photo_path', 'users.url as user_url')
             ->orderBy('updated_at', 'desc')
             ->paginate($limit);
-        return 1;
+        return view('welcome');
     }
 
     public function api()
     {
-        $condition = "AND ";
-        $sql = "SELECT thresh.id, thresh.type, users.profile_photo_path AS photo, pt.user_id, users.url, users.full_name,
-                thresh.updated_at, thresh.name
-            FROM (SELECT t.type, t.id, t.updated_at, t.name
-                FROM threshes t
-                LEFT JOIN participants p
-                    ON p.thresh_id = t.id
-                WHERE p.user_id = 1
-                ORDER BY t.updated_at DESC
-                LIMIT 5
-                OFFSET 0
-            ) thresh
-            LEFT JOIN participants pt
-                ON pt.thresh_id = thresh.id
-            LEFT JOIN users
-                ON users.id = pt.user_id
-            WHERE (thresh.type = 2) AND (pt.user_id <> 1)
-            OR (thresh.type = 1) AND (pt.user_id = 1)
-            GROUP BY thresh.id, thresh.type, thresh.updated_at, thresh.name
-        ";
-        $result = DB::select($sql);
-        return $result;
-
-        $threshList = Thresh::query()
-            ->leftJoin('participants', 'participants.thresh_id', 'threshes.id')
-            ->where('participants.user_id', 1)
-            ->orderBy('threshes.updated_at', 'desc')
-            ->select('threshes.type', 'threshes.id', 'threshes.updated_at')
-            ->get();
-        return $threshList;
-        $participants = Participant::query()
-            ->leftJoin('users', 'users.id', 'participants.user_id')
-            ->where('participants.user_id', '<>', 1)
-            ->whereIn('participants.thresh_id', DB::select("SELECT threshes.id 
-            FROM threshes
-            LEFT JOIN participants
-                ON participants.thresh_id = threshes.id
-            WHERE participants.user_id = 1"))
-            ->offset(0)
-            ->limit(10)
-            ->get();
-        return $participants;
+        $client = new Client(new Version0X('http://localhost:5000'));
+        $client->initialize();
+        $client->emit('broadcast', ['foo' => 'bar']);
+        $client->close();
     }
 }

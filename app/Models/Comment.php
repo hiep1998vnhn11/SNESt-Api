@@ -4,11 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Comment extends Model
 {
     use HasFactory;
     protected $table = 'comments';
+    protected $appends = [
+        'like_group'
+    ];
     public function post()
     {
         return $this->belongsTo('App\Models\Post');
@@ -40,5 +44,27 @@ class Comment extends Model
     public function images()
     {
         return $this->morphMany('App\Models\Like', 'imageable');
+    }
+
+    public function groupAndCountStatus()
+    {
+        return Like::query()
+            ->where('likeable_type', 'App\Models\Comment')
+            ->where('likeable_id', $this->id)
+            ->where('status', '>', 0)
+            ->select('status', DB::raw('COUNT(*) as counter'))
+            ->groupBy('status')
+            ->get();
+    }
+
+    public function getLikeGroupAttribute()
+    {
+        return Like::query()
+            ->where('likeable_type', 'App\Models\Comment')
+            ->where('likeable_id', $this->id)
+            ->where('status', '>', 0)
+            ->select('status', DB::raw('COUNT(*) as counter'))
+            ->groupBy('status')
+            ->get();
     }
 }

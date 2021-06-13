@@ -188,8 +188,11 @@ class UserController extends Controller
         $params = $request->all();
         $limit = Arr::get($params, 'limit', config('const.DEFAULT_PER_PAGE'));
         $posts = Post::where('user_id', $user->id)
-            ->withCount(['likes', 'comments'])
-            ->with(['images', 'likeStatus', 'user'])
+            ->withcount('comments')
+            ->with(['images', 'likeStatus'])
+            ->leftJoin('users', 'users.id', 'user_id')
+            ->select('posts.*', 'users.full_name as user_name', 'users.profile_photo_path as user_profile_photo_path', 'users.url as user_url')
+            ->orderBy('updated_at', 'desc')
             ->paginate($limit);
         return $this->sendRespondSuccess($posts);
     }
@@ -240,6 +243,43 @@ class UserController extends Controller
             });
         }
         $users = $users->limit($limit)->get();
+        return $this->sendRespondSuccess($users);
+    }
+
+    public function suggestUser(Request $request)
+    {
+        $params = $request->all();
+        $offset = Arr::get($params, 'offset', 0);
+        $limit = Arr::get($params, 'limit', config('const.DEFAULT_PER_PAGE'));
+        $users = User::query()
+            ->where('id', '<>', auth()->user()->id)
+            ->orderBy('updated_at', 'desc')
+            ->offset($offset)
+            ->limit($limit)
+            ->select(
+                'full_name',
+                'url',
+                'profile_photo_path'
+            )
+            ->get();
+        return $this->sendRespondSuccess($users);
+    }
+
+    public function followUser(Request $request)
+    {
+        $params = $request->all();
+        $offset = Arr::get($params, 'offset', 0);
+        $limit = Arr::get($params, 'limit', config('const.DEFAULT_PER_PAGE'));
+        $users = User::query()
+            ->leftJoin('follows', 'follows.followed_id', 'users.id')
+            ->where('follows.user_id', auth()->user()->id)
+            ->where('follows.status', 1)
+            ->where('users.id', '<>', auth()->user()->id)
+            ->orderBy('follows.updated_at', 'desc')
+            ->offset($offset)
+            ->limit($limit)
+            ->select('users.full_name', 'users.url', 'users.profile_photo_path')
+            ->get();
         return $this->sendRespondSuccess($users);
     }
 }

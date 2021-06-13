@@ -37,7 +37,7 @@ class GuestController extends Controller
                 'users.url',
             )
             ->orderBy('friends.updated_at', 'desc')
-            ->limit(config('const.DEFAULT_PER_PAGE'))
+            ->limit(8)
             ->get();
         if (auth()->user()) {
             $friendStatus = Friend::where('user_id', auth()->user()->id)

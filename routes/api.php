@@ -85,6 +85,8 @@ Route::group([
         Route::post('{url}/cancel-friend-request', [FriendController::class, 'cancelFriendRequest']);
         Route::post('{url}/block-friend', [FriendController::class, 'blockFriend']);
         Route::post('{url}/unfriend', [FriendController::class, 'unfriend']);
+        Route::get('suggestUser', [UserController::class, 'suggestUser']);
+        Route::get('followUser', [UserController::class, 'followUser']);
 
         Route::group([
             'prefix' => 'relationship',
@@ -139,10 +141,10 @@ Route::group([
             Route::group([
                 'prefix' => 'comment',
             ], function () {
-                Route::post('{comment}/create_sub_comment', [SubCommentController::class, 'create']);
+                Route::post('{comment}/sub_comment', [SubCommentController::class, 'create']);
+                Route::get('{comment}/sub_comment', [CommentController::class, 'getSubComment']);
                 Route::post('{comment}/delete', [CommentController::class, 'delete']);
                 Route::post('{comment}/update', [CommentController::class, 'update']);
-                Route::get('{comment}/get_sub_comment', [CommentController::class, 'getSubComment']);
                 Route::post('{comment}/handle_like', [LikeController::class, 'handleLikeComment']);
                 Route::group([
                     'prefix' => 'sub_comment',
@@ -159,6 +161,7 @@ Route::group([
             'middleware' => 'role:viewer|admin'
         ], function () {
             Route::get('/', [RoomController::class, 'index']);
+            Route::get('{room}', [RoomController::class, 'get']);
         });
 
         Route::group([

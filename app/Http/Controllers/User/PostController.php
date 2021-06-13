@@ -15,6 +15,7 @@ use App\Models\Image;
 use App\Models\Like;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class PostController extends Controller
 {
@@ -139,12 +140,22 @@ class PostController extends Controller
      */
     public function get(String $post)
     {
-        $post = Post::where('uid', $post)->firstOrFail();
-        $post->user;
+        $post = Post::where('uid', $post)
+            ->leftJoin('users', 'users.id', 'posts.user_id')
+            ->select(
+                'posts.id',
+                'posts.uid',
+                'posts.content',
+                'posts.updated_at',
+                'posts.created_at',
+                'users.full_name as user_name',
+                'users.profile_photo_path as user_profile_photo_path',
+                'users.url as user_url',
+            )
+            ->firstOrFail();
         $post->images;
-        $post->loadCount('liked');
-        $post->loadCount('comments');
         $post->likeStatus;
+        $post->loadCount(['liked', 'comments']);
         return $this->sendRespondSuccess($post);
     }
     public function getComment(Request $request, String $post)
@@ -228,19 +239,30 @@ class PostController extends Controller
     public function index(Request $request)
     {
         $params = $request->all();
+        $offset = Arr::get($params, 'offset', 0);
+        $limit = Arr::get($params, 'limit', 3);
         $user = auth()->user();
-        $limit = isset($request->limit) ? $request->limit : config('const.DEFAULT_PERPAGE');
         $followingList = $user->follows()
             ->where('status', 1)
             ->pluck('followed_id');
         $followingList[] = $user->id;
-        $posts = Post::whereIn('user_id', $followingList)
-            ->withcount('comments')
+        $posts = Post::whereIn('posts.user_id', $followingList)
             ->with(['images', 'likeStatus'])
-            ->leftJoin('users', 'users.id', 'user_id')
-            ->select('posts.*', 'users.full_name as user_name', 'users.profile_photo_path as user_profile_photo_path', 'users.url as user_url')
+            ->withCount('comments')
+            ->leftJoin('users', 'users.id', 'posts.user_id')
+            ->select(
+                'posts.id',
+                'posts.uid',
+                'posts.content',
+                'posts.updated_at',
+                'users.full_name as user_name',
+                'users.profile_photo_path as user_profile_photo_path',
+                'users.url as user_url',
+            )
             ->orderBy('updated_at', 'desc')
-            ->paginate($limit);
+            ->offset($offset)
+            ->limit($limit)
+            ->get();
         return $this->sendRespondSuccess($posts);
     }
 }

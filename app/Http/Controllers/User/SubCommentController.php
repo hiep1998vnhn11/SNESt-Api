@@ -8,6 +8,7 @@ use App\Models\Comment;
 use App\Models\SubComment;
 use Illuminate\Http\Request;
 use App\Http\Requests\SubCommentRequest;
+use App\Notifications\SubCommentNotification;
 use Carbon\Carbon;
 
 class SubCommentController extends Controller
@@ -23,39 +24,12 @@ class SubCommentController extends Controller
      */
     public function create(Comment $comment, SubCommentRequest $request)
     {
-        if ($comment->post->privacy == 'blocked')
-            return $this->sendBlocked();
-        else if ($comment->post->privacy == 'private' && $comment->post->user_id != auth()->user()->id)
-            return $this->sendForbidden();
-
         $sub_comment = new SubComment();
         $sub_comment->comment_id = $comment->id;
         $sub_comment->user_id = auth()->user()->id;
         $sub_comment->content = $request->content;
         $sub_comment->save();
-
-        $isNotification = false;
-        foreach ($comment->user->notifications()->where('type', 'App\Notifications\SubCommentNotification')->get() as $notification) {
-            if ($notification->data->comment_id == $comment->id) {
-                $notification->data = [
-                    'username' => auth()->user()->name,
-                    'image' => auth()->user()->profile_photo_path,
-                    'comment_id' => $comment->id
-                ];
-                $notification->updated_at = Carbon::now();
-                $notification->read_at = null;
-                $notification->save();
-                $isNotification = true;
-                break;
-            }
-        }
-        if (!$isNotification) {
-            $comment->user->notify([
-                'username' => auth()->user()->name,
-                'image' => auth()->user()->profile_photo_path,
-                'comment_id' => $comment->id
-            ]);
-        }
+        $this->sendCommentNotificationToUser($comment);
         return $this->sendRespondSuccess($sub_comment, 'Create sub comment successfully!');
     }
 
@@ -90,5 +64,27 @@ class SubCommentController extends Controller
         $sub_comment->content = $request->content;
         $sub_comment->save();
         $this->sendRespondSuccess($sub_comment, 'Update sub comment successfully!');
+    }
+
+    private function sendCommentNotificationToUser($comment)
+    {
+        $user = $comment->user;
+        $notification = $user->notifications()
+            ->where('type', 'App\Notifications\SubCommentNotification')
+            ->where('data->user_id', $user->id)
+            ->where('data->comment_id', $comment->id)
+            ->first();
+        if ($notification) {
+            $notification->updated_at = Carbon::now();
+            $notification->read_at = null;
+            $notification->username = auth()->user()->full_name;
+            $notification->save();
+            return;
+        }
+        $notification = $user->notify(new SubCommentNotification([
+            'username' => auth()->user()->full_name,
+            'post_id' => $comment->post_id,
+            'comment_id' => $comment->id
+        ]));
     }
 }
