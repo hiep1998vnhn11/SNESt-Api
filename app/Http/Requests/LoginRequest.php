@@ -3,9 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
-class PostRequest extends FormRequest
+class LoginRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,9 +24,7 @@ class PostRequest extends FormRequest
     public function rules()
     {
         return [
-            'content' => 'string',
-            'privacy' => ['required', Rule::in([1, 2, 3, 4])],
-            'files.*' => 'file|max:20000'
+            'username' => ''
         ];
     }
 }

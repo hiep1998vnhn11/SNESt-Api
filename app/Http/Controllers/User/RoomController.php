@@ -5,7 +5,9 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\MessageRoomRequest;
 use App\Models\Message;
+use App\Models\Participant;
 use App\Models\Room;
+use App\Models\Thresh;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Arr;
@@ -67,5 +69,13 @@ class RoomController extends Controller
 
     private function getRoom($limit = 10, $offset = 0)
     {
+    }
+
+    public function get($room)
+    {
+        $isPaticipant = Participant::where('thresh_id', $room)
+            ->where('user_id', auth()->user()->id)
+            ->first();
+        if (!$isPaticipant) return $this->sendRespondSuccess();
     }
 }

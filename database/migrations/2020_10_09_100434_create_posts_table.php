@@ -15,12 +15,12 @@ class CreatePostsTable extends Migration
     {
         Schema::create('posts', function (Blueprint $table) {
             $table->id();
-            $table->string('uuid', 15);
+            $table->string('uid', 15);
             $table->unsignedBigInteger('user_id');
+            $table->tinyInteger('privacy')->default(1);
             $table->text('content')->nullable();
             $table->integer('image_count')->default(0);
-            $table->enum('privacy', ['public', 'friend', 'private', 'blocked'])->default('public');
-            $table->softDeletes();
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->timestamps();
         });
     }

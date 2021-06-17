@@ -25,12 +25,9 @@ class RegisterRequest extends FormRequest
     public function rules()
     {
         return [
-            'name'     => 'required|min:4|max:50',
+            'first_name'     => 'required|min:4|max:50',
             'email'    => 'required|email|unique:users,email|min:5|max:255',
-            'password' => 'required|min:4|max:255',
-            'url'      => 'unique:users,url|min:1|max:255',
-            'birthday' => 'required|date',
-            'gender'   => [Rule::in(['male', 'female']), 'required']
+            'password' => 'required|min:4|max:255|confirmed',
         ];
     }
 }

@@ -177,10 +177,10 @@ class MessageService
             'user_second' => $user->id
         ]);
         if ($result) return $result[0];
-        $room = Room::create([
-            'type' => 1
+        $room = Thresh::create([
+            'type' => 2
         ]);
-        Thresh::insert([
+        Participant::insert([
             [
                 'user_id' => auth()->user()->id,
                 'thresh_id' => $room->id,
@@ -188,7 +188,7 @@ class MessageService
                 'updated_at' => Carbon::now()
             ],
             [
-                'user_id' => auth()->user()->id,
+                'user_id' => $user->id,
                 'thresh_id' => $room->id,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now()

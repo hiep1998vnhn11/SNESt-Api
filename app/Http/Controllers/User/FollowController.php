@@ -70,7 +70,7 @@ class FollowController extends Controller
     {
         $status = isset($request->status) ? boolval($request->status) : false;
         $user = User::where('url', $url)->firstOrFail();
-        $follow = auth()->user()->follows()
+        $follow = Follow::where('user_id', auth()->user()->id)
             ->where('followed_id', $user->id)
             ->first();
         if (!$follow) {

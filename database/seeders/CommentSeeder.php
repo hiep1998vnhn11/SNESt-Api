@@ -20,7 +20,7 @@ class CommentSeeder extends Seeder
         for ($i = 0; $i < 100000; $i++) {
             $date = $faker->dateTimeBetween($startDate = '-2 years', $endDate = 'now', $timezone = null);
             Comment::insert([
-                'user_id' => rand(2, 5000),
+                'user_id' => rand(2, 1000),
                 'post_id' => rand(1, 10000),
                 'content' => $faker->realText($maxNbChars = 200, $indexSize = 2),
                 'created_at' => $date,
@@ -29,49 +29,49 @@ class CommentSeeder extends Seeder
 
             Like::insert([
                 [
-                    'user_id' => rand(2, 5000),
-                    'likeable_id' => rand(1, 40000),
-                    'status' => rand(1, 5),
+                    'user_id' => rand(2, 1000),
+                    'likeable_id' => rand(1, 10000),
+                    'status' => rand(1, 7),
                     'likeable_type' => 'App\Models\Post',
                     'created_at' => $date,
                     'updated_at' => $date
                 ],
                 [
-                    'user_id' => rand(2, 5000),
-                    'likeable_id' => rand(1, 40000),
-                    'status' => rand(1, 5),
+                    'user_id' => rand(2, 1000),
+                    'likeable_id' => rand(1, 10000),
+                    'status' => rand(1, 7),
                     'likeable_type' => 'App\Models\Post',
                     'created_at' => $date,
                     'updated_at' => $date
                 ],
                 [
-                    'user_id' => rand(2, 5000),
-                    'likeable_id' => rand(1, 40000),
-                    'status' => rand(1, 5),
+                    'user_id' => rand(2, 1000),
+                    'likeable_id' => rand(1, 10000),
+                    'status' => rand(1, 7),
                     'likeable_type' => 'App\Models\Post',
                     'created_at' => $date,
                     'updated_at' => $date
                 ],
                 [
-                    'user_id' => rand(2, 5000),
-                    'likeable_id' => rand(1, 40000),
-                    'status' => rand(1, 5),
+                    'user_id' => rand(2, 1000),
+                    'likeable_id' => rand(1, 10000),
+                    'status' => rand(1, 7),
                     'likeable_type' => 'App\Models\Post',
                     'created_at' => $date,
                     'updated_at' => $date
                 ],
                 [
-                    'user_id' => rand(2, 5000),
-                    'likeable_id' => rand(1, 40000),
-                    'status' => rand(1, 5),
+                    'user_id' => rand(2, 1000),
+                    'likeable_id' => rand(1, 10000),
+                    'status' => rand(1, 7),
                     'likeable_type' => 'App\Models\Post',
                     'created_at' => $date,
                     'updated_at' => $date
                 ],
                 [
-                    'user_id' => rand(2, 5000),
-                    'likeable_id' => rand(1, 40000),
-                    'status' => rand(1, 5),
+                    'user_id' => rand(2, 1000),
+                    'likeable_id' => rand(1, 10000),
+                    'status' => rand(1, 7),
                     'likeable_type' => 'App\Models\Post',
                     'created_at' => $date,
                     'updated_at' => $date

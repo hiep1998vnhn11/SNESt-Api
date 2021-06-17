@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Faker\Factory;
 use Spatie\Permission\Models\Role;
+use Illuminate\Support\Str;
 
 class UserSeeder extends Seeder
 {
@@ -20,11 +21,15 @@ class UserSeeder extends Seeder
     {
         $faker = Factory::create();
         $viewer = Role::find(1);
-        for ($i = 0; $i < 5000; $i++) {
+        for ($i = 0; $i < 1000; $i++) {
             $gender = rand(0, 1) ? 'male' : 'female';
+            $firstName = $faker->firstName($gender);
+            $lastName = $faker->lastName;
             $user = User::create([
-                'first_name' => $faker->firstName($gender),
-                'last_name' => $faker->lastName,
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+                'full_name' => $firstName . ' ' . $lastName,
+                'slug' => Str::slug($firstName . ' ' . $lastName),
                 'email' => $faker->unique()->safeEmail,
                 'password' => bcrypt('123456'), // password
                 'phone_number' => $faker->phoneNumber,

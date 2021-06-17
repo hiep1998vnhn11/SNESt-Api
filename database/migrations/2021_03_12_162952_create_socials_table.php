@@ -18,6 +18,7 @@ class CreateSocialsTable extends Migration
             $table->unsignedBigInteger('user_id');
             $table->enum('provider_oauth', ['facebook', 'google'])->default('facebook');
             $table->string('provider_id')->nullable();
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->timestamps();
         });
     }

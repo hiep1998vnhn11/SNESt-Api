@@ -8,11 +8,15 @@ use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
-
+    public function log($message)
+    {
+        Log::debug($message);
+    }
     /**
      * Get the token array structure.
      *

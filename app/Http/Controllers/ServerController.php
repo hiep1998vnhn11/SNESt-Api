@@ -26,11 +26,21 @@ class ServerController extends Controller
             ->where('status', 1)
             ->pluck('followed_id');
         $followingList[] = $user->id;
+        $post = Post::where('id', 1)
+            ->withCount(['images', 'comments'])
+            ->with(['images', 'user'])
+            ->first();
+
         $posts = Post::whereIn('user_id', $followingList)
-            ->withCount('comments')
             ->with(['images'])
             ->leftJoin('users', 'users.id', 'user_id')
-            ->select('posts.*', 'users.full_name as user_name', 'users.profile_photo_path as user_profile_photo_path', 'users.url as user_url')
+            ->select(
+                'posts.*',
+                'users.full_name as user_name',
+                'users.profile_photo_path as user_profile_photo_path',
+                'users.url as user_url',
+                DB::raw('(SELECT count(*) FROM comments WHERE posts.id = comments.post_id) as comments_count')
+            )
             ->orderBy('updated_at', 'desc')
             ->paginate($limit);
         return view('welcome');

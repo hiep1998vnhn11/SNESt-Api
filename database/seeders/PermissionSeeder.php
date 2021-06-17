@@ -8,6 +8,7 @@ use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 use App\Models\User;
 use App\Models\Info;
+use Illuminate\Support\Str;
 
 class PermissionSeeder extends Seeder
 {
@@ -18,10 +19,7 @@ class PermissionSeeder extends Seeder
      */
     public function run()
     {
-        // Reset cached roles and permissions
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
-
-        // create permissions
         Permission::create(['name' => 'show user']);
         Permission::create(['name' => 'edit user']);
         Permission::create(['name' => 'delete user']);
@@ -30,11 +28,8 @@ class PermissionSeeder extends Seeder
         Permission::create(['name' => 'unblock user']);
         Permission::create(['name' => 'set admin']);
         Permission::create(['name' => 'unset admin']);
-
-        // create roles and assign existing permissions
         $role1 = Role::create(['name' => 'viewer']);
         $role1->givePermissionTo('show user');
-
         $role2 = Role::create(['name' => 'admin']);
         $role2->givePermissionTo('show user');
         $role2->givePermissionTo('edit user');
@@ -42,20 +37,14 @@ class PermissionSeeder extends Seeder
         $role2->givePermissionTo('create user');
         $role2->givePermissionTo('block user');
         $role2->givePermissionTo('unblock user');
-
         $role3 = Role::create(['name' => 'super-admin']);
         $role3->givePermissionTo(Permission::all());
-
-        // gets all permissions via Gate::before rule; see AuthServiceProvider
-
         $role4 = Role::create(['name' => 'blocked']);
-        // Don't get any permission
-
-
-        // create demo users
         $user = User::create([
             'first_name' => 'Hiệp',
             'last_name' => 'Trần',
+            'full_name' => 'Hiệp Trần',
+            'slug' => 'hiep-tran',
             'email' => 'hiep@gmail.com',
             'password' => bcrypt('123456'),
             'url' => 'hiep'
@@ -65,40 +54,16 @@ class PermissionSeeder extends Seeder
             'user_id' => $user->id,
             'gender' => 'male',
         ]);
-
         $user = User::create([
             'first_name' => 'Hiệp',
             'last_name' => 'Trần',
+            'full_name' => 'Hiệp Trần',
+            'slug' => 'hiep-tran',
             'email' => 'admin@admin',
             'url' => 'admin',
             'password' => bcrypt('admin'),
         ]);
         $user->assignRole($role2);
-        Info::create([
-            'user_id' => $user->id,
-            'gender' => 'male',
-        ]);
-
-        $user = User::create([
-            'first_name' => 'Hiệp',
-            'last_name' => 'Trần',
-            'email' => 'superadmin@admin',
-            'url' => 'supper-admin',
-            'password' => bcrypt('admin'),
-        ]);
-        $user->assignRole($role3);
-        Info::create([
-            'user_id' => $user->id,
-            'gender' => 'male',
-        ]);
-
-        $user = User::create([
-            'first_name' => 'Hiệp',
-            'last_name' => 'Trần',            'email' => 'blocked@gmail.com',
-            'password' => bcrypt('123456'),
-            'url' => 'blocked'
-        ]);
-        $user->assignRole($role4);
         Info::create([
             'user_id' => $user->id,
             'gender' => 'male',

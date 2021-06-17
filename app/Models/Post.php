@@ -32,7 +32,7 @@ class Post extends Model implements Searchable
     }
     public function comments()
     {
-        return $this->hasMany('App\Models\Comment');
+        return $this->hasMany('App\Models\Comment', 'post_id', 'posts.id');
     }
     public function likes()
     {

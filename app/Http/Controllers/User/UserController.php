@@ -16,6 +16,7 @@ use App\Models\Friend;
 use App\Models\Post;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
@@ -63,7 +64,9 @@ class UserController extends Controller
     {
         $uploadFolder = 'public/avatars/' . auth()->user()->url;
         $image = $request->file('image');
-        $name = time() . '_' . $image->getClientOriginalName();
+        if ($image->getClientOriginalName() == 'blob') $name = time() . '_' . 'blob.png';
+        else $name = time() . '_' . $image->getClientOriginalName();
+        $this->log($image->getClientOriginalExtension());
         $image_photo_path = $image->storeAs($uploadFolder, $name);
         Storage::disk('local')->setVisibility($image_photo_path, 'public');
         $path = Storage::disk('local')->url($image_photo_path);
@@ -188,10 +191,15 @@ class UserController extends Controller
         $params = $request->all();
         $limit = Arr::get($params, 'limit', config('const.DEFAULT_PER_PAGE'));
         $posts = Post::where('user_id', $user->id)
-            ->withcount('comments')
             ->with(['images', 'likeStatus'])
             ->leftJoin('users', 'users.id', 'user_id')
-            ->select('posts.*', 'users.full_name as user_name', 'users.profile_photo_path as user_profile_photo_path', 'users.url as user_url')
+            ->select(
+                'posts.*',
+                'users.full_name as user_name',
+                'users.profile_photo_path as user_profile_photo_path',
+                'users.url as user_url',
+                DB::raw('(SELECT count(*) FROM comments WHERE posts.id = comments.post_id) as comments_count')
+            )
             ->orderBy('updated_at', 'desc')
             ->paginate($limit);
         return $this->sendRespondSuccess($posts);

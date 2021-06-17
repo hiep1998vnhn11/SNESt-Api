@@ -18,6 +18,8 @@ class CreateParticipantsTable extends Migration
             $table->unsignedBigInteger('thresh_id');
             $table->unsignedBigInteger('user_id');
             $table->timestamp('last_read_at')->nullable();
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('thresh_id')->references('id')->on('threshes')->onDelete('cascade');
             $table->timestamps();
         });
     }

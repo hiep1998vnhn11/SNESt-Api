@@ -10,6 +10,7 @@ use App\Http\Requests\StorePostRequest;
 use App\Models\Post;
 use Illuminate\Support\Arr;
 use App\Http\Services\PostService;
+use App\Models\Comment;
 use App\Models\Follow;
 use App\Models\Image;
 use App\Models\Like;
@@ -52,8 +53,7 @@ class PostController extends Controller
         $post->content = $request->content;
         $post->uid = rand(100000000000, 99999999999999);
         if ($request->image_count) $post->image_count = $request->image_count;
-        if ($request->privacy) $post->privacy = $request->privacy;
-        else $post->privacy = 'public';
+        $post->privacy = $request->privacy;
         $post->save();
         if ($request->hasFile('files')) {
             $files = $request->file('files');
@@ -151,6 +151,7 @@ class PostController extends Controller
                 'users.full_name as user_name',
                 'users.profile_photo_path as user_profile_photo_path',
                 'users.url as user_url',
+                'posts.image_count'
             )
             ->firstOrFail();
         $post->images;
@@ -163,7 +164,7 @@ class PostController extends Controller
         $limit = isset($request->limit) ? $request->limit : config('const.DEFAULT_PER_PAGE');
         $offset = isset($request->offset) ? $request->offset : 0;
         $post = Post::where('uid', $post)->firstOrFail();
-        $comments = $post->comments()
+        $comments = Comment::where('post_id', $post->id)
             ->withCount(['sub_comments', 'liked'])
             ->with(['user', 'likeStatus'])
             ->orderBy('updated_at', 'desc')
@@ -248,16 +249,18 @@ class PostController extends Controller
         $followingList[] = $user->id;
         $posts = Post::whereIn('posts.user_id', $followingList)
             ->with(['images', 'likeStatus'])
-            ->withCount('comments')
             ->leftJoin('users', 'users.id', 'posts.user_id')
             ->select(
                 'posts.id',
                 'posts.uid',
                 'posts.content',
                 'posts.updated_at',
+                'posts.created_at',
                 'users.full_name as user_name',
                 'users.profile_photo_path as user_profile_photo_path',
                 'users.url as user_url',
+                'posts.image_count',
+                DB::raw('(SELECT count(*) FROM comments WHERE posts.id = comments.post_id) as comments_count')
             )
             ->orderBy('updated_at', 'desc')
             ->offset($offset)
