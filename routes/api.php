@@ -22,6 +22,7 @@ use App\Http\Controllers\OauthController;
 use App\Http\Controllers\ServerController;
 use App\Http\Controllers\User\FollowController;
 
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -72,7 +73,8 @@ Route::group([
         Route::post('upload_background', [UserController::class, 'uploadBackground']);
         Route::post('update_profile', [UserController::class, 'update']);
         Route::post('remove_background', [UserController::class, 'removeBackground']);
-        Route::post('check_url', [UserController::class, 'checkUrl']);
+        Route::post('check-url', [UserController::class, 'checkUrl']);
+        Route::put('change-url', [UserController::class, 'changeUrl']);
         Route::get('get_user', [UserController::class, 'get']);
         Route::get('{url}/get_info', [UserController::class, 'getInfo']);
         Route::get('{url}/get_post', [UserController::class, 'getPost']);
@@ -128,7 +130,7 @@ Route::group([
         ], function () {
             Route::get('/', [PostController::class, 'index']);
             Route::post('create', [PostController::class, 'create']);
-            Route::post('{post}/delete', [PostController::class, 'delete']);
+            Route::delete('{post}', [PostController::class, 'delete']);
             Route::post('{post}/update', [PostController::class, 'update']);
             Route::get('{post}/get', [PostController::class, 'get']);
             Route::get('store', [PostController::class, 'store']);
@@ -216,8 +218,14 @@ Route::group([
     });
 
     Route::group([
-        'middleware' => 'role: admin',
+        'middleware' => 'role:admin',
         'prefix' => 'admin'
     ], function () {
+        Route::get('dashboard', [AdminUserController::class, 'index']);
+        Route::group([
+            'prefix' => 'user'
+        ], function () {
+            Route::post('getRole', [AdminUserController::class, 'getRole']);
+        });
     });
 });

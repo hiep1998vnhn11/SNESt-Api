@@ -64,30 +64,29 @@ class UserController extends Controller
     {
         $uploadFolder = 'public/avatars/' . auth()->user()->url;
         $image = $request->file('image');
-        if ($image->getClientOriginalName() == 'blob') $name = time() . '_' . 'blob.png';
-        else $name = time() . '_' . $image->getClientOriginalName();
+        $name = time() . '_' . $image->getClientOriginalName();
         $this->log($image->getClientOriginalExtension());
         $image_photo_path = $image->storeAs($uploadFolder, $name);
         Storage::disk('local')->setVisibility($image_photo_path, 'public');
         $path = Storage::disk('local')->url($image_photo_path);
         $user = auth()->user();
-        $user->profile_photo_path = $path;
+        $user->profile_photo_path = config('app.url') . $path;
         $user->save();
-        return $this->sendRespondSuccess($user, 'Change Avatar Successfully!');
+        return $this->sendRespondSuccess($user->profile_photo_path, 'Change Avatar Successfully!');
     }
 
     public function uploadBackground(ImageRequest $request)
     {
-        $uploadFolder = 'backgrounds/' . auth()->user()->url;
+        $uploadFolder = 'public/backgrounds/' . auth()->user()->url;
         $image = $request->file('image');
         $name = time() . '_' . $image->getClientOriginalName();
         $image_photo_path = $image->storeAs($uploadFolder, $name);
         Storage::disk('local')->setVisibility($image_photo_path, 'public');
         $path = Storage::disk('local')->url($image_photo_path);
         $info = auth()->user()->info;
-        $info->profile_background_path = $path;
+        $info->profile_background_path = config('app.url') . $path;
         $info->save();
-        return $this->sendRespondSuccess($info, 'Upload file successfully!');
+        return $this->sendRespondSuccess($info->profile_background_path, 'Upload file successfully!');
     }
 
     public function update(ChangeInfoRequest $request)
@@ -289,5 +288,17 @@ class UserController extends Controller
             ->select('users.full_name', 'users.url', 'users.profile_photo_path')
             ->get();
         return $this->sendRespondSuccess($users);
+    }
+
+    public function changeUrl(Request $request)
+    {
+        $url = $request->url ? $request->url : '';
+        $currentUser = auth()->user();
+        if ($url == $currentUser->url) return $this->sendRespondSuccess('Change url success!');
+        $user = User::where('url', $url)->first();
+        if ($user) return $this->sendRespondError();
+        $currentUser->url = $url;
+        $currentUser->save();
+        return $this->sendRespondSuccess('Change url success');
     }
 }

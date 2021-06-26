@@ -14,35 +14,20 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Thresh;
 use ElephantIO\Client;
 use ElephantIO\Engine\SocketIO\Version0X;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\RegisterMail;
 
 class ServerController extends Controller
 {
     public function index(Request $request)
     {
-        $params = $request->all();
-        $user = User::findOrFail(1);
-        $limit = isset($request->limit) ? $request->limit : config('const.DEFAULT_PERPAGE');
-        $followingList = $user->follows()
-            ->where('status', 1)
-            ->pluck('followed_id');
-        $followingList[] = $user->id;
-        $post = Post::where('id', 1)
-            ->withCount(['images', 'comments'])
-            ->with(['images', 'user'])
-            ->first();
-
-        $posts = Post::whereIn('user_id', $followingList)
-            ->with(['images'])
-            ->leftJoin('users', 'users.id', 'user_id')
-            ->select(
-                'posts.*',
-                'users.full_name as user_name',
-                'users.profile_photo_path as user_profile_photo_path',
-                'users.url as user_url',
-                DB::raw('(SELECT count(*) FROM comments WHERE posts.id = comments.post_id) as comments_count')
-            )
-            ->orderBy('updated_at', 'desc')
-            ->paginate($limit);
+        $details = [
+            'datetime' => now(),
+            'title' => 'Snest - đăng ký',
+            'header' => 'Cảm ơn bạn đã đăng ký vào Snest',
+            'content' => 'Đây là mã xác minh của bạn: ' . 123456
+        ];
+        Mail::to('hiep.tv167170@sis.hust.edu.vn')->send(new RegisterMail($details));
         return view('welcome');
     }
 

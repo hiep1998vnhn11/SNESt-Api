@@ -12,6 +12,10 @@ use App\Http\Requests\RegisterRequest;
 use App\Models\Info;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\RegisterMail;
+use App\Models\Vertication;
+use Carbon\Carbon;
 
 class AuthController extends Controller
 {
@@ -30,12 +34,13 @@ class AuthController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function login()
+    public function login(Request $request)
     {
         $credentials = request(['email', 'password']);
-        if (!$token = auth()->setTTL(7200)->attempt($credentials)) {
+        if (!$token = auth()->attempt($credentials)) {
             return $this->sendRespondError($credentials, 'Unauthorized', config('const.STATUS_CODE_UNAUTHORIZED'));
         }
+        if (auth()->user()->active !== 1) return $this->sendRespondError($request->email, 'Unconfirmable', 400);
         return $this->respondWithToken($token);
     }
 
@@ -70,7 +75,7 @@ class AuthController extends Controller
      */
     public function refresh()
     {
-        $token = auth()->setTTL(7200)->refresh(true, true);
+        $token = auth()->refresh(true, true);
         return $this->respondWithToken($token);
     }
 
@@ -84,7 +89,7 @@ class AuthController extends Controller
         $user->email = $request->email;
         $user->password = bcrypt($request->password);
         $user->url = Str::random(25);
-        $messageSuccess = 'Register successfully!';
+        $user->active = 0;
         $role = Role::findById(1);
         $user->assignRole($role);
         $user->save();
@@ -92,6 +97,20 @@ class AuthController extends Controller
         $info->user_id = $user->id;
         $info->save();
         $user->info;
-        return $this->sendRespondSuccess($user, 'Success');
+
+        $code = random_int(100000, 999999);
+        $details = [
+            'datetime' => now(),
+            'title' => 'Snest - đăng ký',
+            'header' => 'Cảm ơn bạn đã đăng ký vào Snest',
+            'content' => 'Đây là mã xác minh của bạn: ' . $code
+        ];
+        Vertication::create([
+            'code' => $code,
+            'user_id' => $user->id,
+            'expire' => Carbon::now()->addDay(1)
+        ]);
+        Mail::to($request->email)->send(new RegisterMail($details));
+        return $this->sendRespondSuccess();
     }
 }

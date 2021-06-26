@@ -113,7 +113,8 @@ class CommentController extends Controller
 
     private function sendCommentNotificationToUser($post)
     {
-        $notification = $post->user->notifications()
+        $user = $post->user;
+        $notification = $user->notifications()
             ->where('type', 'App\Notifications\CommentNotification')
             ->where('data->type', 'post')
             ->where('data->id', $post->uid)
@@ -130,7 +131,7 @@ class CommentController extends Controller
             $notification->save();
             return;
         }
-        $notification = $post->user->notify(new CommentNotification([
+        $user->notify(new CommentNotification([
             'username' => auth()->user()->full_name,
             'type' => 'post',
             'id' => $post->uid,

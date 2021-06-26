@@ -23,9 +23,9 @@
 <body class="antialiased">
     <div id="app">
         @section('navbar')
-            <header class="header">
-                @navbar
-            </header>
+        <header class="header">
+            @navbar
+        </header>
         @show
         <div class="container">
             @yield('content')

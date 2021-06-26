@@ -30,7 +30,7 @@ class CommentNotification extends Notification
      */
     public function via($notifiable)
     {
-        return ['mail'];
+        return ['database'];
     }
 
     /**
@@ -56,8 +56,9 @@ class CommentNotification extends Notification
     public function toArray($notifiable)
     {
         return [
-            'post_id' => $this->data['post_id'],
             'username' => $this->data['username'],
+            'type' => $this->data['type'],
+            'id' => $this->data['id'],
             'image' => $this->data['image']
         ];
     }

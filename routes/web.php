@@ -17,8 +17,9 @@ use App\Http\Controllers\User\UserController;
 */
 
 Route::get('/', [ServerController::class, 'index']);
-Route::get('test/{post}', [PostController::class, 'get']);
-Route::get('{url}/get_friend', [UserController::class, 'getFriend']);
+Route::view('/mail', 'mail.register');
+// Route::get('test/{post}', [PostController::class, 'get']);
+// Route::get('{url}/get_friend', [UserController::class, 'getFriend']);
 
 // Route::view('/login', 'login.index')->middleware('guest:web')->name('admin-login');
 // Route::post('/login', [AuthController::class, 'login'])->middleware('guest:web')->name('admin-login');
