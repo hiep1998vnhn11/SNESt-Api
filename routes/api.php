@@ -45,6 +45,10 @@ Route::group([
     Route::post('logout', [AuthController::class, 'logout']);
     Route::post('token/refresh', [AuthController::class, 'refresh']);
     Route::post('me', [AuthController::class, 'me']);
+    Route::post('confirm-register', [AuthController::class, 'confirmRegister']);
+    Route::post('resend-code', [AuthController::class, 'resendVerticationCode']);
+    Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('confirm-forgot-password', [AuthController::class, 'confirmForgotPassword']);
 });
 
 Route::get('test', [ServerController::class, 'api']);

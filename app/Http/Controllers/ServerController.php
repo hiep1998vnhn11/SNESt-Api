@@ -21,13 +21,13 @@ class ServerController extends Controller
 {
     public function index(Request $request)
     {
-        $details = [
-            'datetime' => now(),
-            'title' => 'Snest - đăng ký',
-            'header' => 'Cảm ơn bạn đã đăng ký vào Snest',
-            'content' => 'Đây là mã xác minh của bạn: ' . 123456
-        ];
-        Mail::to('hiep.tv167170@sis.hust.edu.vn')->send(new RegisterMail($details));
+        // $details = [
+        //     'datetime' => now(),
+        //     'title' => 'Snest - đăng ký',
+        //     'header' => 'Cảm ơn bạn đã đăng ký vào Snest',
+        //     'content' => 'Đây là mã xác minh của bạn: ' . 123456
+        // ];
+        // Mail::to('hiep.tv167170@sis.hust.edu.vn')->send(new RegisterMail($details));
         return view('welcome');
     }
 

@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
 use App\Models\Info;
+use Illuminate\Support\Str;
 
 class OauthController extends Controller
 {
@@ -32,6 +33,7 @@ class OauthController extends Controller
             $social = Social::where('provider_id', $facebookUser['id'])
                 ->where('provider_oauth', config('oauth.facebook.type'))
                 ->first();
+            $this->log($facebookUser);
             $user = null;
             if ($social) {
                 $user = $social->user;
@@ -40,7 +42,9 @@ class OauthController extends Controller
                 if (!$user) {
                     $user = new User();
                     $user->email = $email;
-                    $user->name = $facebookUser['name'];
+                    $user->first_name = $facebookUser['name'];
+                    $user->full_name = $facebookUser['name'];
+                    $user->slug = Str::slug($facebookUser['name']);
                     $user->password = null;
                     $user->url = $facebookUser['id'];
                     $user->profile_photo_path = $facebookUser['picture']['url'];
@@ -50,9 +54,10 @@ class OauthController extends Controller
                     $user->save();
                     $info = new Info;
                     $info->user_id = $user->id;
-                    $info->profile_background_path = 'https://www.reachaccountant.com/wp-content/uploads/2016/06/Default-Background.png';
+                    $info->profile_background_path = asset('/storage/user/default-user-cover-photo.jpeg');
                     $info->birthday = $facebookUser['birthday'];
                     $info->gender = $facebookUser['gender'];
+                    $info->link_to_social = $facebookUser['link'];
                     $info->save();
                 }
                 $social = new Social();

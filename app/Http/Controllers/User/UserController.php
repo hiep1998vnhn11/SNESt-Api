@@ -258,8 +258,12 @@ class UserController extends Controller
         $params = $request->all();
         $offset = Arr::get($params, 'offset', 0);
         $limit = Arr::get($params, 'limit', config('const.DEFAULT_PER_PAGE'));
+        $followList = Follow::where('user_id', auth()->user()->id)
+            ->where('status', 1)
+            ->pluck('followed_id');
+        $followList[] = auth()->user()->id;
         $users = User::query()
-            ->where('id', '<>', auth()->user()->id)
+            ->whereNotIn('id', $followList)
             ->orderBy('updated_at', 'desc')
             ->offset($offset)
             ->limit($limit)
@@ -269,6 +273,7 @@ class UserController extends Controller
                 'profile_photo_path'
             )
             ->get();
+        $this->log($users);
         return $this->sendRespondSuccess($users);
     }
 

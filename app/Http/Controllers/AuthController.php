@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ConfirmRegisterRequest;
+use App\Http\Requests\EmailRequest;
 use App\Models\User;
 use Illuminate\Support\Str;
 
@@ -26,7 +28,7 @@ class AuthController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login', 'register']]);
+        $this->middleware('auth:api', ['except' => ['login', 'register', 'confirmRegister', 'resendVerticationCode', 'forgotPassword']]);
     }
 
     /**
@@ -112,5 +114,51 @@ class AuthController extends Controller
         ]);
         Mail::to($request->email)->send(new RegisterMail($details));
         return $this->sendRespondSuccess();
+    }
+
+    public function confirmRegister(ConfirmRegisterRequest $request)
+    {
+        $email = $request->email;
+        $code = $request->code;
+        $user = User::where('email', $email)->first();
+        if ($user->active === 1) return $this->sendRespondError($email, 'UserHadActived', 400);
+        $vertication = Vertication::query()
+            ->where('user_id', $user->id)
+            ->first();
+        $expire = Carbon::create($vertication->expire);
+        $now = Carbon::now();
+        if ($expire < $now) return $this->sendRespondError($email, 'CodeExpired', 400);
+        $user->active = 1;
+        $user->save();
+        $vertication->delete();
+        return $this->sendRespondSuccess($email, 'VertifySuccess');
+    }
+
+    public function resendVerticationCode(EmailRequest $request)
+    {
+        $email = $request->email;
+        $user = User::where('email', $email)->first();
+        if (!$user) return $this->sendRespondError($email, 'UserNotRegister', 400);
+        $vertication = Vertication::where('user_id', $user->id)->first();
+        if (!$vertication) return $this->sendRespondError($email, 'UserMustNotVertify', 400);
+        $vertication->expire = Carbon::now()->addDay(1);
+        $code = random_int(100000, 999999);
+        $vertication->code = $code;
+        $vertication->save();
+        $details = [
+            'datetime' => now(),
+            'title' => 'Snest - đăng ký',
+            'header' => 'Cảm ơn bạn đã đăng ký vào Snest',
+            'content' => 'Đây là mã xác minh của bạn: ' . $code
+        ];
+        Mail::to($request->email)->send(new RegisterMail($details));
+        return $this->sendRespondSuccess($email, 'Success');
+    }
+
+    public function forgotPassword(EmailRequest $request)
+    {
+        $email = $request->email;
+        $user = User::where('email', $email)->first();
+        if (!$user) return $this->sendRespondError($email, 'UserNotRegister', 400);
     }
 }

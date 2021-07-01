@@ -76,6 +76,9 @@ class PostController extends Controller
         $post->likes = [];
         $post->likeStatus = null;
         $post->likeds_count = 0;
+        $post->user_profile_photo_path = auth()->user()->profile_photo_path;
+        $post->user_name = auth()->user()->full_name;
+        $post->user_url = auth()->user()->url;
         return $this->sendRespondSuccess(
             $post,
             'Create post successfully!'
