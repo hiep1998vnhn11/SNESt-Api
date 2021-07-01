@@ -2,6 +2,9 @@ version: "3"
 services:
   app:
     build:
+      args:
+        user: hieptran
+        uid: 501
       context: ./
       dockerfile: Dockerfile
     image: laravel-app
