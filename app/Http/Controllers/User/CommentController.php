@@ -9,6 +9,7 @@ use App\Models\Post;
 use App\Notifications\CommentNotification;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class CommentController extends Controller
 {
@@ -27,7 +28,7 @@ class CommentController extends Controller
      */
     public function create(Post $post, CommentRequest $request)
     {
-        if (!$request->content && !$request->image_path)
+        if (!$request->content && !$request->hasFile('image'))
             return $this->sendRespondError(
                 $request,
                 'Content or image is required!',
@@ -39,8 +40,15 @@ class CommentController extends Controller
         $comment = new Comment();
         if ($request->content)
             $comment->content = $request->content;
-        if ($request->image_path)
-            $comment->image_path = $request->image_path;
+        if ($request->hasFile('image')) {
+            $uploadFolder = 'public/files/posts/' . $post->id;
+            $file = $request->file('image');
+            $name = time() . '_' . $file->getClientOriginalName();
+            $type = $file->getClientOriginalExtension();
+            $file_path = $file->storeAs($uploadFolder, $name);
+            $path = Storage::disk('local')->url($file_path);
+            $comment->image_path = config('app.url') .  $path;
+        }
         $comment->post_id = $post->id;
         $comment->user_id = auth()->user()->id;
         $comment->save();

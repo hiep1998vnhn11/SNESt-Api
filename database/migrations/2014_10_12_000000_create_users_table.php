@@ -23,7 +23,8 @@ class CreateUsersTable extends Migration
             $table->string('phone_number')->unique()->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password')->nullable();
-            $table->text('profile_photo_path')->default(config('app.url') . '/storage' . '/user/default-user-avatar.jpeg');
+            $table->text('profile_photo_path')->nullable();
+            // $table->text('profile_photo_path')->default(config('app.url') . '/storage' . '/user/default-user-avatar.jpeg');
             $table->string('url');
             $table->string('provider_oauth')->nullable();
             $table->timestamps();

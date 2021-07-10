@@ -25,7 +25,7 @@ class CommentRequest extends FormRequest
     {
         return [
             'content' => 'string',
-            'file.*' => 'file|max:20000'
+            'image' => 'image:jpeg,png,jpg,gif,svg|max:20000'
         ];
     }
 }

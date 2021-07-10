@@ -17,7 +17,8 @@ class CreateInfosTable extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->enum('gender', ['male', 'female'])->default('male');
-            $table->text('profile_background_path')->default(config('app.url') . '/storage' . '/user/default-user-cocer-photo.jpeg');
+            $table->text('profile_background_path')->nullable();
+            // $table->text('profile_background_path')->default(config('app.url') . '/storage' . '/user/default-user-cocer-photo.jpeg');
             $table->date('birthday')->nullable();
             $table->string('live_at')->nullable();
             $table->string('from')->nullable();
