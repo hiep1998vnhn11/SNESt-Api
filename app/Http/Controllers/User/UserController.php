@@ -151,8 +151,16 @@ class UserController extends Controller
             },
             'follows', 'followeds'
         ]);
-        $user->friend = auth()->user()->friends()->where('friend_id', $user->id)->first();
-        $user->follow = auth()->user()->follows()->where('followed_id', $user->id)->first();
+        $friend = Friend::where('user_id', auth()->user()->id)
+            ->where('friend_id', $user->id)
+            ->first();
+        $user->friend = $friend ? $friend->status : null;
+        $user->info;
+
+        $follow = Follow::where('user_id', auth()->user()->id)
+            ->where('followed_id', $user->id)
+            ->first();
+        $user->follow = $follow ? $follow->status : null;
         return $this->sendRespondSuccess($user, 'get Info successfully!');
     }
 
@@ -188,19 +196,42 @@ class UserController extends Controller
     {
         $user = User::where('url', $url)->firstOrFail();
         $params = $request->all();
-        $limit = Arr::get($params, 'limit', config('const.DEFAULT_PER_PAGE'));
-        $posts = Post::where('user_id', $user->id)
-            ->with(['images', 'likeStatus'])
-            ->leftJoin('users', 'users.id', 'user_id')
+        $offset = Arr::get($params, 'offset', 0);
+        $limit = Arr::get($params, 'limit', 5);
+        $posts = Post::where('posts.user_id', $user->id)
+            ->with(['images', 'media'])
+            ->leftJoin('users', 'users.id', 'posts.user_id')
+            ->leftJoin(
+                'likes',
+                function ($join) {
+                    $join->on('likes.likeable_id', '=', 'posts.id')
+                        ->where('likes.likeable_type', '=', 'App\Models\Post')
+                        ->where('likes.user_id', auth()->user()->id);
+                }
+            )
             ->select(
-                'posts.*',
+                'posts.id',
+                'posts.uid',
+                'posts.content',
+                'posts.updated_at',
+                'posts.created_at',
+                'posts.privacy',
                 'users.full_name as user_name',
                 'users.profile_photo_path as user_profile_photo_path',
                 'users.url as user_url',
-                DB::raw('(SELECT count(*) FROM comments WHERE posts.id = comments.post_id) as comments_count')
+                'posts.image_count',
+                'likes.status as like_status',
+                DB::raw('(SELECT count(*) FROM comments WHERE posts.id = comments.post_id) as comments_count'),
+                DB::raw("(SELECT count(*) FROM likes WHERE posts.id = likes.likeable_id AND likes.likeable_type = 'post' AND likes.status > 0) as likes_count"),
             )
             ->orderBy('updated_at', 'desc')
-            ->paginate($limit);
+            ->offset($offset)
+            ->limit($limit)
+            ->get()
+            ->map(function ($query) {
+                $query->setRelation('media', $query->media->take(4));
+                return $query;
+            });
         return $this->sendRespondSuccess($posts);
     }
 
@@ -216,7 +247,6 @@ class UserController extends Controller
         $friends = Friend::query()
             ->where('friends.user_id', $user->id)
             ->leftJoin('users as UF', 'friends.friend_id', 'UF.id');
-
         $friends = $friends->where('friends.status', $types[$type]);
         if ($types[$type] != 'all') {
             $friends = $friends;
@@ -229,9 +259,13 @@ class UserController extends Controller
                     ->orWhere('UF.url', 'like', '%' . $searchKey . '%');
             });
         }
-        $friends = $friends->select('UF.*', 'friends.id as id')
+        $friends = $friends
+            ->select('UF.full_name', 'UF.url', 'UF.profile_photo_path', 'friends.id as id')
             ->paginate($limit);
-        return $this->sendRespondSuccess($friends);
+        return $this->sendRespondSuccess([
+            'data' => $friends->items(),
+            'total' => $friends->total(),
+        ]);
     }
 
     public function searchFollow(Request $request)

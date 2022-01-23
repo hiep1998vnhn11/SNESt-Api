@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\HandleLikeRequest;
 use App\Http\Requests\ImageRequest;
 use Illuminate\Http\Request;
 use App\Http\Requests\PostRequest;
@@ -14,6 +15,7 @@ use App\Models\Comment;
 use App\Models\Follow;
 use App\Models\Image;
 use App\Models\Like;
+use App\Models\Media;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -39,22 +41,35 @@ class PostController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function create(PostRequest $request)
+    public function store(PostRequest $request)
     {
         if (!$request->content && !$request->hasFile('files')) {
             return $this->sendRespondError(
-                $request,
-                'Content or Image is required!',
+                null,
+                'Bạn chưa nhập nội dung hoặc chưa chọn ảnh!',
                 config('const.STATUS_CODE_UN_PROCESSABLE')
             );
+        }
+        $media = null;
+        if ($request->media) {
+            $media = @json_decode($request->media);
         }
         $post = new Post();
         $post->user_id = auth()->user()->id;
         $post->content = $request->content;
-        $post->uid = rand(100000000000, 99999999999999);
+        $id = rand(100000000000, 99999999999999);
+        $post->uid = "{$id}";
         if ($request->image_count) $post->image_count = $request->image_count;
-        $post->privacy = $request->privacy;
+        $post->privacy = intval($request->privacy);
         $post->save();
+        if ($media) {
+            Media::whereIn('id', $media)
+                ->where('user_id', auth()->user()->id)
+                ->update([
+                    'object_id' => $post->id,
+                    'object_type' => 'post'
+                ]);
+        }
         if ($request->hasFile('files')) {
             $files = $request->file('files');
             $uploadFolder = 'public/files/' . auth()->user()->url . '/' . Carbon::now()->format('Y-m-d');
@@ -70,8 +85,8 @@ class PostController extends Controller
                 $image->save();
             }
         }
-        $post->images;
-        $post->user = auth()->user();
+        $post->media = $post->media()->take(4)->get();
+        // $post->user = auth()->user();
         $post->comments_count = 0;
         $post->likes = [];
         $post->likeStatus = null;
@@ -158,19 +173,27 @@ class PostController extends Controller
                 'posts.image_count'
             )
             ->firstOrFail();
-        $post->images;
+        $post->media;
         $post->likeStatus;
-        $post->loadCount(['liked', 'comments']);
+        $post->loadCount(['likes', 'comments']);
         return $this->sendRespondSuccess($post);
     }
+
     public function getComment(Request $request, String $post)
     {
         $limit = isset($request->limit) ? $request->limit : config('const.DEFAULT_PER_PAGE');
         $offset = isset($request->offset) ? $request->offset : 0;
         $post = Post::where('uid', $post)->firstOrFail();
-        $comments = Comment::where('post_id', $post->id)
+        $comments = Comment::query()
+            ->select('comments.*', 'likes.status as like_status')
+            ->where('post_id', $post->id)
             ->withCount(['sub_comments', 'liked'])
-            ->with(['user', 'likeStatus'])
+            ->leftJoin('likes', function ($join) {
+                $join->on('likes.likeable_id', '=', 'comments.id')
+                    ->where('likes.likeable_type', '=', 'App\Models\Comment')
+                    ->where('likes.user_id', '=', auth()->user()->id);
+            })
+            ->with(['user'])
             ->orderBy('updated_at', 'desc')
             ->offset($offset)
             ->limit($limit)
@@ -218,7 +241,7 @@ class PostController extends Controller
     }
 
 
-    public function store(StorePostRequest $request)
+    public function storePost(StorePostRequest $request)
     {
         $data = $this->postService->getPostForAuth($request->all());
         if ($data) return $this->sendRespondSuccess($data, 'Get Post successfully!');
@@ -245,15 +268,23 @@ class PostController extends Controller
     {
         $params = $request->all();
         $offset = Arr::get($params, 'offset', 0);
-        $limit = Arr::get($params, 'limit', 3);
+        $limit = Arr::get($params, 'limit', 5);
         $user = auth()->user();
         $followingList = $user->follows()
             ->where('status', 1)
             ->pluck('followed_id');
         $followingList[] = $user->id;
         $posts = Post::whereIn('posts.user_id', $followingList)
-            ->with(['images', 'likeStatus'])
+            ->with(['images', 'media'])
             ->leftJoin('users', 'users.id', 'posts.user_id')
+            ->leftJoin(
+                'likes',
+                function ($join) {
+                    $join->on('likes.likeable_id', '=', 'posts.id')
+                        ->where('likes.likeable_type', '=', 'post')
+                        ->where('likes.user_id', auth()->user()->id);
+                }
+            )
             ->select(
                 'posts.id',
                 'posts.uid',
@@ -265,12 +296,18 @@ class PostController extends Controller
                 'users.profile_photo_path as user_profile_photo_path',
                 'users.url as user_url',
                 'posts.image_count',
-                DB::raw('(SELECT count(*) FROM comments WHERE posts.id = comments.post_id) as comments_count')
+                'likes.status as like_status',
+                DB::raw('(SELECT count(*) FROM comments WHERE posts.id = comments.post_id) as comments_count'),
+                DB::raw("(SELECT count(*) FROM likes WHERE posts.id = likes.likeable_id AND likes.likeable_type = 'post' AND likes.status > 0) as likes_count"),
             )
             ->orderBy('updated_at', 'desc')
             ->offset($offset)
             ->limit($limit)
-            ->get();
+            ->get()
+            ->map(function ($query) {
+                $query->setRelation('media', $query->media->take(4));
+                return $query;
+            });
         return $this->sendRespondSuccess($posts);
     }
 }

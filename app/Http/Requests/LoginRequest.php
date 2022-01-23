@@ -24,7 +24,9 @@ class LoginRequest extends FormRequest
     public function rules()
     {
         return [
-            'username' => ''
+            'email' => 'nullable|string',
+            'password' => 'nullable|string',
+            'type' => 'nullable|in:1,2,3'
         ];
     }
 }

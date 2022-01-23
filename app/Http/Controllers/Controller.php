@@ -27,7 +27,7 @@ class Controller extends BaseController
     public function respondWithToken($token)
     {
         return response()->json([
-            'status'       => 'success',
+            'status'       => 0,
             'current'      => Carbon::now()->toDateTimeString(),
             'access_token' => $token,
             'expires_in'   => auth('api')->factory()->getTTL() * 60
@@ -44,7 +44,7 @@ class Controller extends BaseController
     public function sendRespondSuccess($data = [], $message = 'success')
     {
         return response()->json([
-            'status'  => 'success',
+            'status'  => 0,
             'current' => Carbon::now()->toDateTimeString(),
             'message' => $message,
             'data'    => $data

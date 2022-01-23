@@ -22,7 +22,7 @@ class User extends Authenticatable implements JWTSubject, Searchable
     use HasFactory;
     use HasProfilePhoto;
     use HasTeams;
-    use Notifiable;
+    // use Notifiable;
     use TwoFactorAuthenticatable;
     use HasRoles;
     /**
@@ -45,7 +45,8 @@ class User extends Authenticatable implements JWTSubject, Searchable
         'two_factor_recovery_codes',
         'two_factor_secret',
         'email_verified_at',
-        'provider_oauth'
+        'provider_oauth',
+        'provider_oauth_id',
     ];
 
     /**
@@ -183,5 +184,20 @@ class User extends Authenticatable implements JWTSubject, Searchable
     public function followeds()
     {
         return $this->hasMany('App\Models\Follow', 'followed_id');
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany('App\Models\Notification');
+    }
+
+    public function unReadNotifications()
+    {
+        return $this->hasMany('App\Models\Notification')->whereNull('read_at');
+    }
+
+    public function unseenNotifications()
+    {
+        return $this->hasMany('App\Models\Notification')->whereNull('seen_at');
     }
 }

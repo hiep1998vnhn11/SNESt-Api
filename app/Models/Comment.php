@@ -20,7 +20,9 @@ class Comment extends Model
 
     public function likes()
     {
-        return $this->morphMany('App\Models\Like', 'likeable')->orderBy('created_at', 'desc');
+        return $this->hasMany('App\Models\Like', 'likeable_id')
+            ->where('likeable_type', 'comment')
+            ->orderBy('created_at', 'desc');
     }
 
     public function liked()
@@ -30,7 +32,7 @@ class Comment extends Model
 
     public function user()
     {
-        return $this->belongsTo('App\Models\User');
+        return $this->belongsTo('App\Models\User')->select('id', 'url', 'profile_photo_path', 'full_name');
     }
     public function sub_comments()
     {

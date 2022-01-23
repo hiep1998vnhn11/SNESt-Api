@@ -21,42 +21,42 @@ class SubCommentSeeder extends Seeder
             $date = $faker->dateTimeBetween($startDate = '-2 years', $endDate = 'now', $timezone = null);
             SubComment::insert([
                 [
-                    'user_id' => rand(2, 5000),
+                    'user_id' => rand(2, 1000),
                     'comment_id' => rand(1, 100000),
                     'content' => $faker->realText($maxNbChars = 200, $indexSize = 2),
                     'created_at' => $date,
                     'updated_at' => $date,
                 ],
                 [
-                    'user_id' => rand(2, 5000),
+                    'user_id' => rand(2, 1000),
                     'comment_id' => rand(1, 100000),
                     'content' => $faker->realText($maxNbChars = 200, $indexSize = 2),
                     'created_at' => $date,
                     'updated_at' => $date,
                 ],
                 [
-                    'user_id' => rand(2, 5000),
+                    'user_id' => rand(2, 1000),
                     'comment_id' => rand(1, 100000),
                     'content' => $faker->realText($maxNbChars = 200, $indexSize = 2),
                     'created_at' => $date,
                     'updated_at' => $date,
                 ],
                 [
-                    'user_id' => rand(2, 5000),
+                    'user_id' => rand(2, 1000),
                     'comment_id' => rand(1, 100000),
                     'content' => $faker->realText($maxNbChars = 200, $indexSize = 2),
                     'created_at' => $date,
                     'updated_at' => $date,
                 ],
                 [
-                    'user_id' => rand(2, 5000),
+                    'user_id' => rand(2, 1000),
                     'comment_id' => rand(1, 100000),
                     'content' => $faker->realText($maxNbChars = 200, $indexSize = 2),
                     'created_at' => $date,
                     'updated_at' => $date,
                 ],
                 [
-                    'user_id' => rand(2, 5000),
+                    'user_id' => rand(2, 1000),
                     'comment_id' => rand(1, 100000),
                     'content' => $faker->realText($maxNbChars = 200, $indexSize = 2),
                     'created_at' => $date,
@@ -66,7 +66,7 @@ class SubCommentSeeder extends Seeder
 
             Like::insert([
                 [
-                    'user_id' => rand(2, 5000),
+                    'user_id' => rand(2, 1000),
                     'likeable_id' => rand(1, 100000),
                     'status' => rand(1, 5),
                     'likeable_type' => 'App\Models\Comment',
@@ -74,7 +74,7 @@ class SubCommentSeeder extends Seeder
                     'updated_at' => $date,
                 ],
                 [
-                    'user_id' => rand(2, 5000),
+                    'user_id' => rand(2, 1000),
                     'likeable_id' => rand(1, 100000),
                     'status' => rand(1, 5),
                     'likeable_type' => 'App\Models\Comment',
@@ -82,7 +82,7 @@ class SubCommentSeeder extends Seeder
                     'updated_at' => $date,
                 ],
                 [
-                    'user_id' => rand(2, 5000),
+                    'user_id' => rand(2, 1000),
                     'likeable_id' => rand(1, 100000),
                     'status' => rand(1, 5),
                     'likeable_type' => 'App\Models\Comment',
@@ -90,7 +90,7 @@ class SubCommentSeeder extends Seeder
                     'updated_at' => $date,
                 ],
                 [
-                    'user_id' => rand(2, 5000),
+                    'user_id' => rand(2, 1000),
                     'likeable_id' => rand(1, 100000),
                     'status' => rand(1, 5),
                     'likeable_type' => 'App\Models\Comment',
@@ -98,7 +98,7 @@ class SubCommentSeeder extends Seeder
                     'updated_at' => $date,
                 ],
                 [
-                    'user_id' => rand(2, 5000),
+                    'user_id' => rand(2, 1000),
                     'likeable_id' => rand(1, 100000),
                     'status' => rand(1, 5),
                     'likeable_type' => 'App\Models\Comment',
@@ -106,7 +106,7 @@ class SubCommentSeeder extends Seeder
                     'updated_at' => $date,
                 ],
                 [
-                    'user_id' => rand(2, 5000),
+                    'user_id' => rand(2, 1000),
                     'likeable_id' => rand(1, 100000),
                     'status' => rand(1, 5),
                     'likeable_type' => 'App\Models\Comment',
@@ -114,7 +114,7 @@ class SubCommentSeeder extends Seeder
                     'updated_at' => $date,
                 ],
                 [
-                    'user_id' => rand(2, 5000),
+                    'user_id' => rand(2, 1000),
                     'likeable_id' => rand(1, 100000),
                     'status' => rand(1, 5),
                     'likeable_type' => 'App\Models\Comment',
@@ -122,7 +122,7 @@ class SubCommentSeeder extends Seeder
                     'updated_at' => $date,
                 ],
                 [
-                    'user_id' => rand(2, 5000),
+                    'user_id' => rand(2, 1000),
                     'likeable_id' => rand(1, 100000),
                     'status' => rand(1, 5),
                     'likeable_type' => 'App\Models\Comment',
@@ -130,7 +130,7 @@ class SubCommentSeeder extends Seeder
                     'updated_at' => $date,
                 ],
                 [
-                    'user_id' => rand(2, 5000),
+                    'user_id' => rand(2, 1000),
                     'likeable_id' => rand(1, 100000),
                     'status' => rand(1, 5),
                     'likeable_type' => 'App\Models\Comment',
@@ -138,7 +138,7 @@ class SubCommentSeeder extends Seeder
                     'updated_at' => $date,
                 ],
                 [
-                    'user_id' => rand(2, 5000),
+                    'user_id' => rand(2, 1000),
                     'likeable_id' => rand(1, 100000),
                     'status' => rand(1, 5),
                     'likeable_type' => 'App\Models\Comment',
@@ -146,7 +146,7 @@ class SubCommentSeeder extends Seeder
                     'updated_at' => $date,
                 ],
                 [
-                    'user_id' => rand(2, 5000),
+                    'user_id' => rand(2, 1000),
                     'likeable_id' => rand(1, 100000),
                     'status' => rand(1, 5),
                     'likeable_type' => 'App\Models\Comment',
@@ -154,7 +154,7 @@ class SubCommentSeeder extends Seeder
                     'updated_at' => $date,
                 ],
                 [
-                    'user_id' => rand(2, 5000),
+                    'user_id' => rand(2, 1000),
                     'likeable_id' => rand(1, 100000),
                     'status' => rand(1, 5),
                     'likeable_type' => 'App\Models\Comment',

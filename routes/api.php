@@ -23,6 +23,8 @@ use App\Http\Controllers\ServerController;
 use App\Http\Controllers\User\FollowController;
 
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\UploadController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -57,6 +59,23 @@ Route::group([
     'prefix' => 'v1'
 ], function () {
     Route::group([
+        'middleware' => 'api',
+        'prefix' => 'auth'
+    ], function ($router) {
+        Route::post('login', [AuthController::class, 'login']);
+        Route::post('facebook/login', [OauthController::class, 'facebook']);
+        Route::post('google/login', [OauthController::class, 'google']);
+        Route::post('register', [AuthController::class, 'register']);
+        Route::post('logout', [AuthController::class, 'logout']);
+        Route::post('token/refresh', [AuthController::class, 'refresh']);
+        Route::get('me', [AuthController::class, 'me']);
+        Route::post('confirm-register', [AuthController::class, 'confirmRegister']);
+        Route::post('resend-code', [AuthController::class, 'resendVerticationCode']);
+        Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
+        Route::post('confirm-forgot-password', [AuthController::class, 'confirmForgotPassword']);
+    });
+
+    Route::group([
         'prefix' => 'guest'
     ], function () {
         Route::get('user/{url}', [GuestController::class, 'getUser']);
@@ -71,6 +90,7 @@ Route::group([
         'prefix' => 'user',
         'middleware' => 'role:viewer|admin'
     ], function () {
+        Route::post('upload-file', [UploadController::class, 'uploadFile']);
         Route::post('handle_friend', [FriendController::class, 'handleFriend']);
         Route::post('send_message', [MessageController::class, 'sendMessage']);
         Route::post('upload_avatar', [UserController::class, 'uploadAvatar']);
@@ -80,7 +100,6 @@ Route::group([
         Route::post('check-url', [UserController::class, 'checkUrl']);
         Route::put('change-url', [UserController::class, 'changeUrl']);
         Route::get('get_user', [UserController::class, 'get']);
-        Route::get('{url}/get_info', [UserController::class, 'getInfo']);
         Route::get('{url}/get_post', [UserController::class, 'getPost']);
         Route::get('{url}/get_friend', [UserController::class, 'getFriend']);
         Route::post('{url}/handle-follow', [FollowController::class, 'handleFollow']);
@@ -93,7 +112,6 @@ Route::group([
         Route::post('{url}/unfriend', [FriendController::class, 'unfriend']);
         Route::get('suggestUser', [UserController::class, 'suggestUser']);
         Route::get('followUser', [UserController::class, 'followUser']);
-
         Route::group([
             'prefix' => 'relationship',
             'middleware' => 'role:viewer|admin'
@@ -133,17 +151,16 @@ Route::group([
             'middleware' => 'role:viewer|admin'
         ], function () {
             Route::get('/', [PostController::class, 'index']);
-            Route::post('create', [PostController::class, 'create']);
+            Route::post('/', [PostController::class, 'store']);
             Route::delete('{post}', [PostController::class, 'delete']);
-            Route::post('{post}/update', [PostController::class, 'update']);
-            Route::get('{post}/get', [PostController::class, 'get']);
-            Route::get('store', [PostController::class, 'store']);
-            Route::post('{post}/handle_like', [LikeController::class, 'handleLike']);
-            Route::post('{post}/create_comment', [CommentController::class, 'create']);
-            Route::get('{post}/get_comment', [PostController::class, 'getComment']);
+            Route::post('{post}', [PostController::class, 'update']);
+            Route::get('{post}', [PostController::class, 'get']);
+            Route::get('store', [PostController::class, 'storePost']);
+            Route::post('{pid}/like', [LikeController::class, 'handleLike']);
+            Route::post('{post}/comment', [CommentController::class, 'store']);
+            Route::get('{post}/comment', [PostController::class, 'getComment']);
             Route::get('{post}/get_like', [PostController::class, 'getLike']);
             Route::post('upload', [PostController::class, 'uploadImage']);
-
             Route::group([
                 'prefix' => 'comment',
             ], function () {
@@ -151,7 +168,7 @@ Route::group([
                 Route::get('{comment}/sub_comment', [CommentController::class, 'getSubComment']);
                 Route::post('{comment}/delete', [CommentController::class, 'delete']);
                 Route::post('{comment}/update', [CommentController::class, 'update']);
-                Route::post('{comment}/handle_like', [LikeController::class, 'handleLikeComment']);
+                Route::post('{comment}/like', [LikeController::class, 'handleLikeComment']);
                 Route::group([
                     'prefix' => 'sub_comment',
                 ], function () {
@@ -203,11 +220,13 @@ Route::group([
             'prefix' => 'notification',
             'middleware' => 'role:viewer'
         ], function () {
-            Route::post('create', [NotificationFriendController::class, 'create']);
+            Route::post('', [NotificationFriendController::class, 'create']);
             Route::get('read', [NotificationFriendController::class, 'read']);
             Route::delete('delete', [NotificationFriendController::class, 'delete']);
-            Route::get('get', [NotificationController::class, 'index']);
+            Route::get('', [NotificationController::class, 'index']);
+            Route::get('unseen', [NotificationController::class, 'numberUnseen']);
             Route::get('number_unread', [NotificationController::class, 'numberUnread']);
+            Route::post('{notification}', [NotificationController::class, 'read']);
         });
 
         Route::group([
@@ -219,6 +238,7 @@ Route::group([
             Route::delete('{value}/delete', [SearchController::class, 'delete']);
             Route::post('test', [SearchController::class, 'test']);
         });
+        Route::get('{url}', [UserController::class, 'getInfo']);
     });
 
     Route::group([

@@ -26,8 +26,9 @@ class CommentController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function create(Post $post, CommentRequest $request)
+    public function store($pid, CommentRequest $request)
     {
+        $post = Post::where('uid', $pid)->firstOrFail();
         if (!$request->content && !$request->hasFile('image'))
             return $this->sendRespondError(
                 $request,
@@ -53,6 +54,7 @@ class CommentController extends Controller
         $comment->user_id = auth()->user()->id;
         $comment->save();
         $this->sendCommentNotificationToUser($post);
+        // $comment->user = auth()->user();
         return $this->sendRespondSuccess(
             $comment,
             'Create comment successfully!'

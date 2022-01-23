@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Spatie\Searchable\Searchable;
 use Spatie\Searchable\SearchResult;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class Post extends Model implements Searchable
 {
@@ -36,11 +37,12 @@ class Post extends Model implements Searchable
     }
     public function likes()
     {
-        return $this->morphMany('App\Models\Like', 'likeable')->orderBy('updated_at', 'desc');
+        return $this->hasMany('App\Models\Like', 'likeable_id')
+            ->where('likeable_type', 'post');
     }
     public function liked()
     {
-        return $this->morphMany('App\Models\Like', 'likeable')->where('status', '>', 0)->orderBy('created_at', 'desc');
+        return $this->morphMany('App\Models\Like', 'likeable')->where('likes.status', '>', 0)->orderBy('likes.created_at', 'desc');
     }
     public function images()
     {
@@ -49,7 +51,9 @@ class Post extends Model implements Searchable
 
     public function likeStatus()
     {
-        return $this->morphOne('App\Models\Like', 'likeable')->where('user_id', auth()->user()->id);
+        return $this->hasOne('App\Models\Like', 'likeable_id')
+            ->where('likeable_type', 'post')
+            ->where('user_id', auth()->user()->id);
     }
 
     public function getContentAttribute($value)
@@ -60,7 +64,20 @@ class Post extends Model implements Searchable
     public function getLikeGroupAttribute()
     {
         return Like::query()
-            ->where('likeable_type', 'App\Models\Post')
+            ->where('likeable_type', 'post')
+            ->where('likeable_id', $this->id)
+            ->where('status', '>', 0)
+            ->select('status', DB::raw('COUNT(*) as counter'))
+            ->groupBy('status')
+            ->orderBy('counter', 'DESC')
+            ->take(3)
+            ->get();
+    }
+
+    public function groupAndCountStatus()
+    {
+        return Like::query()
+            ->where('likeable_type', 'post')
             ->where('likeable_id', $this->id)
             ->where('status', '>', 0)
             ->select('status', DB::raw('COUNT(*) as counter'))
@@ -68,14 +85,10 @@ class Post extends Model implements Searchable
             ->get();
     }
 
-    public function groupAndCountStatus()
+    public function media()
     {
-        return Like::query()
-            ->where('likeable_type', 'App\Models\Post')
-            ->where('likeable_id', $this->id)
-            ->where('status', '>', 0)
-            ->select('status', DB::raw('COUNT(*) as counter'))
-            ->groupBy('status')
-            ->get();
+        return $this->hasMany('App\Models\Media', 'object_id')
+            ->select(['object_id', 'url', 'type'])
+            ->where('object_type', 'post');
     }
 }

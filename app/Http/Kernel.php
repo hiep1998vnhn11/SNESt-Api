@@ -40,8 +40,12 @@ class Kernel extends HttpKernel
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
 
+        'storage' => [
+            \App\Http\Middleware\AuthStorageMiddleware::class
+        ],
+
         'api' => [
-            'throttle:api',
+            'throttle:300,1',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\DetectOnlineUser::class,
         ],

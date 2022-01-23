@@ -6,9 +6,9 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ConfirmRegisterRequest;
 use App\Http\Requests\EmailRequest;
+use App\Http\Requests\LoginRequest;
 use App\Models\User;
 use Illuminate\Support\Str;
-
 use Spatie\Permission\Models\Role;
 use App\Http\Requests\RegisterRequest;
 use App\Models\Info;
@@ -18,6 +18,9 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\RegisterMail;
 use App\Models\Vertication;
 use Carbon\Carbon;
+use Facebook\Facebook;
+use Facebook\Exceptions\FacebookResponseException;
+use Facebook\Exceptions\FacebookSDKException;
 
 class AuthController extends Controller
 {
@@ -36,14 +39,77 @@ class AuthController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $credentials = request(['email', 'password']);
-        if (!$token = auth()->attempt($credentials)) {
-            return $this->sendRespondError($credentials, 'Unauthorized', config('const.STATUS_CODE_UNAUTHORIZED'));
+        $params = $request->validated();
+        if (!$request->type || $request->type == 1) {
+            $credentials['password'] = $params['password'] ?? null;
+            $field = filter_var($request->email, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone_number';
+            $credentials[$field] = $params['email'] ?? null;
+            if (!$token = auth()->attempt($credentials)) {
+                return $this->sendRespondError($credentials, 'Unauthorized', config('const.STATUS_CODE_UNAUTHORIZED'));
+            }
+        } elseif ($request->type == 2) {
+            $token = $request->token ?? null;
+            if (!$token) {
+                return $this->sendRespondError(null, 'Unauthorized', config('const.STATUS_CODE_UNAUTHORIZED'));
+            }
+            $fb = new Facebook([
+                'app_id' => config('social.facebook.app_id'),
+                'app_secret' => config('social.facebook.app_secret'),
+                'default_graph_version' => 'v2.10',
+            ]);
+            try {
+                $response = $fb->get('/me?fields=id,name,email,first_name,last_name', $request->token);
+            } catch (FacebookResponseException $e) {
+                $this->log($e);
+                return $this->sendRespondError(null, 'Unauthorized', config('const.STATUS_CODE_UNAUTHORIZED'));
+            } catch (FacebookSDKException $e) {
+                $this->log($e);
+                return $this->sendRespondError(null, 'Unauthorized', config('const.STATUS_CODE_UNAUTHORIZED'));
+            } catch (\Exception $e) {
+                $this->log($e);
+            }
+            $userInfo = $response->getGraphUser();
+            if (!$userInfo) {
+                return $this->sendRespondError(null, 'Unauthorized', config('const.STATUS_CODE_UNAUTHORIZED'));
+            }
+
+            $oauthId = $userInfo['id'] ?? null;
+            $user = User::where('provider_oauth_id', $oauthId)
+                ->where('provider_oauth', 'facebook')
+                ->first();
+            if (!$user) {
+                $user = User::where('email', $userInfo['email'])
+                    ->first();
+            }
+            if (!$user) {
+                $user = new User();
+                $user->first_name = $userInfo['first_name'] ?? null;
+                $user->last_name = $userInfo['last_name'] ?? null;
+                $user->full_name = $userInfo['name'] ?? null;
+                $user->slug = Str::slug($user->full_name);
+                $user->email = $userInfo['email'] ?? null;
+                $user->url = $userInfo['id'];
+                $user->provider_oauth_id = $userInfo['id'];
+                $user->provider_oauth = 'facebook';
+                $role = Role::findById(1);
+                $user->assignRole($role);
+                $user->save();
+                $info = new Info;
+                $info->user_id = $user->id;
+                $info->save();
+                $user->info = $info;
+            }
+            $token = auth()->login($user);
+        } else {
         }
-        if (auth()->user()->active !== 1) return $this->sendRespondError($request->email, 'Unconfirmable', 400);
-        return $this->respondWithToken($token);
+        // if (auth()->user()->active !== 1) return $this->sendRespondError($request->email, 'Unconfirmable', 400);
+        return $this->sendRespondSuccess([
+            'access_token' => $token,
+            'token_type' => 'bearer',
+            'expires_in' => auth('api')->factory()->getTTL() * 60,
+        ], 'Login successfully', config('const.STATUS_CODE_SUCCESS'));
     }
 
     /**

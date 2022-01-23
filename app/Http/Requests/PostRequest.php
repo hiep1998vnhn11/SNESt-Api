@@ -26,7 +26,7 @@ class PostRequest extends FormRequest
     {
         return [
             'content' => 'string',
-            'privacy' => ['required', Rule::in([1, 2, 3, 4])],
+            'privacy' => ['required', Rule::in(['1', '2', '3', '4'])],
             'files.*' => 'file|max:20000'
         ];
     }

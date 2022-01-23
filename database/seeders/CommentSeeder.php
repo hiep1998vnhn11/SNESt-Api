@@ -17,15 +17,19 @@ class CommentSeeder extends Seeder
     public function run()
     {
         $faker = Factory::create();
-        for ($i = 0; $i < 100000; $i++) {
-            $date = $faker->dateTimeBetween($startDate = '-2 years', $endDate = 'now', $timezone = null);
-            Comment::insert([
-                'user_id' => rand(2, 1000),
-                'post_id' => rand(1, 10000),
-                'content' => $faker->realText($maxNbChars = 200, $indexSize = 2),
-                'created_at' => $date,
-                'updated_at' => $date,
-            ]);
+        for ($i = 0; $i < 1000; $i++) {
+            $comment = [];
+            for ($j = 0; $j < 100; $j++) {
+                $date = $faker->dateTimeBetween($startDate = '-2 years', $endDate = 'now', $timezone = null);
+                $comment[] = [
+                    'user_id' => rand(2, 1000),
+                    'post_id' => rand(1, 9274),
+                    'content' => $faker->realText($maxNbChars = 200, $indexSize = 2),
+                    'created_at' => $date,
+                    'updated_at' => $date,
+                ];
+            }
+            Comment::insert($comment);
 
             Like::insert([
                 [

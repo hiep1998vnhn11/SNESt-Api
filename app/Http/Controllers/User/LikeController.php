@@ -8,6 +8,7 @@ use App\Models\Comment;
 use Illuminate\Http\Request;
 use App\Models\Post;
 use App\Models\Like;
+use App\Models\Notification;
 use App\Models\SubComment;
 use App\Notifications\LikeNotification;
 use Carbon\Carbon;
@@ -25,10 +26,11 @@ class LikeController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function handleLike(Post $post, HandleLikeRequest $request)
+    public function handleLike($pid, HandleLikeRequest $request)
     {
+        $post = Post::where('uid', $pid)->firstOrFail();
         $requestStatus = $request->status;
-        $type = 'App\Models\Post';
+        $type = 'post';
         if ($post->privacy == 'blocked') return $this->sendBlocked();
         if ($post->privacy == 'private' && $post->user_id != auth()->user()->id)
             return $this->sendForbidden();
@@ -53,7 +55,7 @@ class LikeController extends Controller
     public function handleLikeComment(Comment $comment, HandleLikeRequest $request)
     {
         $requestStatus = $request->status;
-        $type = 'App\Models\Comment';
+        $type = 'comment';
         // isLiked return a like if user had liked a post
         $isLikeCreated = $comment->likes()
             ->where('user_id', auth()->user()->id)
@@ -103,13 +105,13 @@ class LikeController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function createLike($id, $status, $type = 'App\Models\Post')
+    private function createLike($id, $status, $type = 'App\Models\Post')
     {
         $like = new Like;
         $like->user_id = auth()->user()->id;
         $like->likeable_type = $type;
         $like->likeable_id = $id;
-        $like->status = $status;
+        $like->status = intval($status);
         $like->save();
         return $like;
     }
@@ -123,9 +125,9 @@ class LikeController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function like($like, $status)
+    private function like($like, $status)
     {
-        $like->status = $status;
+        $like->status = intval($status);
         $like->save();
         return $like;
     }
@@ -137,43 +139,43 @@ class LikeController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function unlike($like, $message)
+    private function unlike($like, $message)
     {
         $like->status = 0;
         $like->save();
         return $like;
     }
 
-    public function sendLikeNotificationToUser($post)
+    private function sendLikeNotificationToUser($post)
     {
-        $likes_count = Like::where('likeable_type', 'App\Models\Post')
+        $likes_count = Like::where('likeable_type', 'post')
             ->where('likeable_id', $post->id)
             ->where('status', '>', 0)
             ->count();
         $notification = $post->user->notifications()
-            ->where('type', 'App\Notifications\LikeNotification')
-            ->where('data->type', 'post')
-            ->where('data->id', $post->uid)
+            ->where('type', 'post')
+            ->where('object_type', 'post')
+            ->where('object_id', $post->id)
+            ->where('object_url', $post->uid)
             ->first();
         if ($notification) {
-            $notification->data = [
-                'username' => auth()->user()->full_name,
-                'image' => auth()->user()->profile_photo_path,
-                'likes_count' => $likes_count,
-                'type' => 'post',
-                'id' => $post->uid
-            ];
-            $notification->updated_at = Carbon::now();
+            $notification->title = 'và ' . $likes_count . ' người khác đã thả biểu tượng cảm xúc vào bài viết của bạn';
             $notification->read_at = null;
-            $notification->save();
-            return;
+            $notification->seen_at = null;
+            $notification->created_at = now();
+            $notification->target_user_id = auth()->user()->id;
+            return $notification->save();
         }
-        $notification = $post->user->notify(new LikeNotification([
-            'username' => auth()->user()->full_name,
-            'type' => 'post',
-            'id' => $post->uid,
-            'image' => auth()->user()->profile_photo_path,
-            'likes_count' => $likes_count
-        ]));
+        $notification = new Notification();
+        $notification->title = 'và ' . $likes_count . ' người khác đã thả biểu tượng cảm xúc vào bài viết của bạn';
+        $notification->read_at = null;
+        $notification->seen_at = null;
+        $notification->target_user_id = auth()->user()->id;
+        $notification->object_type = 'post';
+        $notification->object_id = $post->id;
+        $notification->object_url = $post->uid;
+        $notification->type = 'post';
+        $notification->user_id = $post->user->id;
+        return $notification->save();
     }
 }
